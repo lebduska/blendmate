@@ -1,0 +1,22 @@
+# macOS
+.DS_Store
+
+# Node / frontend
+node_modules/
+dist/
+build/
+.vite/
+*.log
+
+# Tauri
+src-tauri/target/
+src-tauri/gen/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# IDE
+.idea/
+.vscode/
