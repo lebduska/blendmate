@@ -1,6 +1,7 @@
 use futures_util::StreamExt;
 use tokio::net::TcpListener;
 use tokio_tungstenite::{accept_async, tungstenite::Message};
+use tauri::{Emitter, Manager};
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 #[tauri::command]
@@ -10,7 +11,7 @@ fn greet(name: &str) -> String {
 
 const WS_ADDRESS: &str = "127.0.0.1:32123";
 
-fn start_websocket_server(app_handle: tauri::AppHandle) {
+fn start_websocket_server<R: tauri::Runtime>(app_handle: tauri::AppHandle<R>) {
     tauri::async_runtime::spawn(async move {
         let listener = match TcpListener::bind(WS_ADDRESS).await {
             Ok(listener) => listener,
@@ -34,7 +35,7 @@ fn start_websocket_server(app_handle: tauri::AppHandle) {
             tauri::async_runtime::spawn(async move {
                 match accept_async(stream).await {
                     Ok(mut websocket) => {
-                        if let Err(err) = app_handle.emit_all("ws:status", "connected") {
+                        if let Err(err) = app_handle.emit("ws:status", "connected") {
                             eprintln!("Failed to emit ws:status connected: {err}");
                         }
 
@@ -44,7 +45,7 @@ fn start_websocket_server(app_handle: tauri::AppHandle) {
                                 return;
                             }
 
-                            if let Err(err) = app_handle.emit_all("ws:status", "disconnected") {
+                            if let Err(err) = app_handle.emit("ws:status", "disconnected") {
                                 eprintln!("Failed to emit ws:status disconnected: {err}");
                             }
 
@@ -54,7 +55,7 @@ fn start_websocket_server(app_handle: tauri::AppHandle) {
                         while let Some(message_result) = websocket.next().await {
                             match message_result {
                                 Ok(Message::Text(text)) => {
-                                    if let Err(err) = app_handle.emit_all("ws:message", text) {
+                                    if let Err(err) = app_handle.emit("ws:message", text) {
                                         eprintln!("Failed to emit ws:message: {err}");
                                         emit_disconnected(&mut disconnected_emitted);
                                         break;
@@ -78,7 +79,7 @@ fn start_websocket_server(app_handle: tauri::AppHandle) {
                     Err(err) => {
                         eprintln!("WebSocket handshake error: {err}");
 
-                        if let Err(err) = app_handle.emit_all("ws:status", "disconnected") {
+                        if let Err(err) = app_handle.emit("ws:status", "disconnected") {
                             eprintln!("Failed to emit ws:status disconnected: {err}");
                         }
                     }
@@ -93,7 +94,7 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .setup(|app| {
-            start_websocket_server(app.handle());
+            start_websocket_server(app.handle().clone());
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![greet])
