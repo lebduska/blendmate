@@ -20,3 +20,6 @@ __pycache__/
 # IDE
 .idea/
 .vscode/
+
+# blendmate
+ops/outbox.jsonl

@@ -1,0 +1,25 @@
+{
+    "repo": "lebduska/blendmate",
+    "mode": "apply",
+    "actions": [
+      { "type": "cmd", "command": "gh issue edit 4 --remove-label codex:ready --add-label codex:blocked" },
+      { "type": "cmd", "command": "gh issue edit 5 --remove-label codex:ready --add-label codex:blocked" },
+      { "type": "cmd", "command": "gh issue edit 6 --remove-label codex:ready --add-label codex:blocked" },
+      { "type": "cmd", "command": "gh issue edit 7 --remove-label codex:ready --add-label codex:blocked" },
+      { "type": "cmd", "command": "gh issue edit 8 --remove-label codex:ready --add-label codex:blocked" },
+  
+      {
+        "type": "cmd",
+        "command": "gh issue comment 2 -b \"Codex: implement this as 1 PR. Keep deps minimal (tokio + tokio-tungstenite + futures-util). Start WS server on app launch, bind 127.0.0.1:32123, emit Tauri events ws:status (connected/disconnected) and ws:message (raw incoming text). Update docs/ARCHITECTURE.md if anything changes. How tested: npm run tauri dev.\""
+      },
+      {
+        "type": "cmd",
+        "command": "gh issue comment 3 -b \"Codex: implement this as 1 PR. Add useBlendmateSocket() hook (TS) that connects to ws://127.0.0.1:32123 using native WebSocket. Expose {status,lastMessage,sendJson}. On open send ping JSON. Render minimal status + last message in App. How tested: npm run tauri dev.\""
+      },
+  
+      { "type": "cmd", "command": "gh issue list --state open --label codex:ready --limit 200" },
+      { "type": "cmd", "command": "gh issue list --state open --label codex:blocked --limit 200" },
+      { "type": "cmd", "command": "gh pr list --limit 50" },
+      { "type": "git_status" }
+    ]
+  }
