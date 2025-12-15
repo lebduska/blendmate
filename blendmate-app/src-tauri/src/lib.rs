@@ -34,28 +34,55 @@ fn start_websocket_server(app_handle: tauri::AppHandle) {
             tauri::async_runtime::spawn(async move {
                 match accept_async(stream).await {
                     Ok(mut websocket) => {
-                        let _ = app_handle.emit_all("ws:status", "connected");
+                        if let Err(err) = app_handle.emit_all("ws:status", "connected") {
+                            eprintln!("Failed to emit ws:status connected: {err}");
+                        }
+
+                        let mut disconnected_emitted = false;
+                        let mut emit_disconnected = |disconnected_emitted: &mut bool| {
+                            if *disconnected_emitted {
+                                return;
+                            }
+
+                            if let Err(err) = app_handle.emit_all("ws:status", "disconnected") {
+                                eprintln!("Failed to emit ws:status disconnected: {err}");
+                            }
+
+                            *disconnected_emitted = true;
+                        };
 
                         while let Some(message_result) = websocket.next().await {
                             match message_result {
                                 Ok(Message::Text(text)) => {
-                                    let _ = app_handle.emit_all("ws:message", text);
+                                    if let Err(err) = app_handle.emit_all("ws:message", text) {
+                                        eprintln!("Failed to emit ws:message: {err}");
+                                        emit_disconnected(&mut disconnected_emitted);
+                                        break;
+                                    }
                                 }
-                                Ok(Message::Close(_)) => break,
+                                Ok(Message::Close(_)) => {
+                                    emit_disconnected(&mut disconnected_emitted);
+                                    break;
+                                }
                                 Ok(_) => {}
                                 Err(err) => {
                                     eprintln!("WebSocket read error: {err}");
+                                    emit_disconnected(&mut disconnected_emitted);
                                     break;
                                 }
                             }
                         }
+
+                        emit_disconnected(&mut disconnected_emitted);
                     }
                     Err(err) => {
                         eprintln!("WebSocket handshake error: {err}");
+
+                        if let Err(err) = app_handle.emit_all("ws:status", "disconnected") {
+                            eprintln!("Failed to emit ws:status disconnected: {err}");
+                        }
                     }
                 }
-
-                let _ = app_handle.emit_all("ws:status", "disconnected");
             });
         }
     });
