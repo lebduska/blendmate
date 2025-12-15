@@ -1,0 +1,275 @@
+[
+  {
+    "name": "frame_change_pre",
+    "trigger": "After the frame changes for playback or rendering, before data is evaluated for the new frame",
+    "signature": "(scene, depsgraph)",
+    "description": "Use to adjust data/relations for the new frame before the dependency graph is updated",
+    "source": "source/blender/python/intern/bpy_app_handlers.cc"
+  },
+  {
+    "name": "frame_change_post",
+    "trigger": "After the frame changes for playback or rendering, once data has been evaluated for the new frame",
+    "signature": "(scene, depsgraph)",
+    "description": "Runs after evaluation so you can react to the evaluated frame state",
+    "source": "source/blender/python/intern/bpy_app_handlers.cc"
+  },
+  {
+    "name": "render_pre",
+    "trigger": "Before a render starts",
+    "signature": "(scene)",
+    "description": "Allows setup work immediately before rendering begins",
+    "source": "source/blender/python/intern/bpy_app_handlers.cc"
+  },
+  {
+    "name": "render_post",
+    "trigger": "After a render finishes",
+    "signature": "(scene)",
+    "description": "Cleanup or logging hook after rendering completes",
+    "source": "source/blender/python/intern/bpy_app_handlers.cc"
+  },
+  {
+    "name": "render_write",
+    "trigger": "Directly after a render frame is written to disk",
+    "signature": "(scene)",
+    "description": "Runs per-frame after the output file is written",
+    "source": "source/blender/python/intern/bpy_app_handlers.cc"
+  },
+  {
+    "name": "render_stats",
+    "trigger": "When render statistics are printed",
+    "signature": "(render_stats)",
+    "description": "Receives render and save timing plus background frame/memory stats",
+    "source": "source/blender/python/intern/bpy_app_handlers.cc"
+  },
+  {
+    "name": "render_init",
+    "trigger": "On initialization of a render job",
+    "signature": "(scene)",
+    "description": "Setup hook that can adjust render context before processing starts",
+    "source": "source/blender/python/intern/bpy_app_handlers.cc"
+  },
+  {
+    "name": "render_complete",
+    "trigger": "On completion of a render job",
+    "signature": "(scene)",
+    "description": "Called when a render job finishes successfully",
+    "source": "source/blender/python/intern/bpy_app_handlers.cc"
+  },
+  {
+    "name": "render_cancel",
+    "trigger": "When a render job is canceled",
+    "signature": "(scene)",
+    "description": "Runs if a render is canceled before completion",
+    "source": "source/blender/python/intern/bpy_app_handlers.cc"
+  },
+  {
+    "name": "load_pre",
+    "trigger": "Before loading a new .blend file",
+    "signature": "(filepath)",
+    "description": "Receives the path of the file being loaded (empty for startup file)",
+    "source": "source/blender/python/intern/bpy_app_handlers.cc"
+  },
+  {
+    "name": "load_post",
+    "trigger": "After loading a new .blend file",
+    "signature": "(filepath)",
+    "description": "Runs once a file has been loaded (empty for startup file)",
+    "source": "source/blender/python/intern/bpy_app_handlers.cc"
+  },
+  {
+    "name": "load_post_fail",
+    "trigger": "After a blend file fails to load",
+    "signature": "(filepath)",
+    "description": "Called when loading fails, receiving the attempted filepath",
+    "source": "source/blender/python/intern/bpy_app_handlers.cc"
+  },
+  {
+    "name": "save_pre",
+    "trigger": "Before saving a .blend file",
+    "signature": "(filepath)",
+    "description": "Receives the target filepath (empty for startup file) before saving begins",
+    "source": "source/blender/python/intern/bpy_app_handlers.cc"
+  },
+  {
+    "name": "save_post",
+    "trigger": "After saving a .blend file",
+    "signature": "(filepath)",
+    "description": "Runs after saving completes, with the target filepath",
+    "source": "source/blender/python/intern/bpy_app_handlers.cc"
+  },
+  {
+    "name": "save_post_fail",
+    "trigger": "After saving a .blend file fails",
+    "signature": "(filepath)",
+    "description": "Called when saving fails, with the attempted filepath",
+    "source": "source/blender/python/intern/bpy_app_handlers.cc"
+  },
+  {
+    "name": "undo_pre",
+    "trigger": "Before an undo step is loaded",
+    "signature": "()",
+    "description": "Hook to run just before applying an undo step",
+    "source": "source/blender/python/intern/bpy_app_handlers.cc"
+  },
+  {
+    "name": "undo_post",
+    "trigger": "After an undo step is loaded",
+    "signature": "()",
+    "description": "Runs once undo processing finishes",
+    "source": "source/blender/python/intern/bpy_app_handlers.cc"
+  },
+  {
+    "name": "redo_pre",
+    "trigger": "Before a redo step is loaded",
+    "signature": "()",
+    "description": "Hook that fires before redo is applied",
+    "source": "source/blender/python/intern/bpy_app_handlers.cc"
+  },
+  {
+    "name": "redo_post",
+    "trigger": "After a redo step is loaded",
+    "signature": "()",
+    "description": "Runs once redo processing finishes",
+    "source": "source/blender/python/intern/bpy_app_handlers.cc"
+  },
+  {
+    "name": "depsgraph_update_pre",
+    "trigger": "Before the dependency graph updates",
+    "signature": "(scene, depsgraph)",
+    "description": "Called ahead of depsgraph updates so you can prepare data",
+    "source": "source/blender/python/intern/bpy_app_handlers.cc"
+  },
+  {
+    "name": "depsgraph_update_post",
+    "trigger": "After the dependency graph updates",
+    "signature": "(scene, depsgraph)",
+    "description": "Runs once depsgraph evaluation finishes",
+    "source": "source/blender/python/intern/bpy_app_handlers.cc"
+  },
+  {
+    "name": "version_update",
+    "trigger": "When versioning code finishes",
+    "signature": "()",
+    "description": "Fires at the end of internal version update steps",
+    "source": "source/blender/python/intern/bpy_app_handlers.cc"
+  },
+  {
+    "name": "load_factory_preferences_post",
+    "trigger": "After loading factory preferences",
+    "signature": "()",
+    "description": "Runs once factory defaults for user preferences are applied",
+    "source": "source/blender/python/intern/bpy_app_handlers.cc"
+  },
+  {
+    "name": "load_factory_startup_post",
+    "trigger": "After loading the factory startup file",
+    "signature": "()",
+    "description": "Called after resetting to factory startup configuration",
+    "source": "source/blender/python/intern/bpy_app_handlers.cc"
+  },
+  {
+    "name": "xr_session_start_pre",
+    "trigger": "Before starting an XR session",
+    "signature": "()",
+    "description": "Hook to prepare just before an XR session begins",
+    "source": "source/blender/python/intern/bpy_app_handlers.cc"
+  },
+  {
+    "name": "annotation_pre",
+    "trigger": "Before drawing an annotation",
+    "signature": "(annotation, depsgraph)",
+    "description": "Runs prior to annotation drawing with the annotation datablock and depsgraph",
+    "source": "source/blender/python/intern/bpy_app_handlers.cc"
+  },
+  {
+    "name": "annotation_post",
+    "trigger": "After drawing an annotation",
+    "signature": "(annotation, depsgraph)",
+    "description": "Called after annotation drawing completes",
+    "source": "source/blender/python/intern/bpy_app_handlers.cc"
+  },
+  {
+    "name": "object_bake_pre",
+    "trigger": "Before starting an object bake job",
+    "signature": "(object)",
+    "description": "Runs just before baking begins for an object",
+    "source": "source/blender/python/intern/bpy_app_handlers.cc"
+  },
+  {
+    "name": "object_bake_complete",
+    "trigger": "When an object bake job completes",
+    "signature": "(object)",
+    "description": "Called in the main thread once baking finishes successfully",
+    "source": "source/blender/python/intern/bpy_app_handlers.cc"
+  },
+  {
+    "name": "object_bake_cancel",
+    "trigger": "When an object bake job is canceled",
+    "signature": "(object)",
+    "description": "Runs in the main thread if baking is canceled",
+    "source": "source/blender/python/intern/bpy_app_handlers.cc"
+  },
+  {
+    "name": "composite_pre",
+    "trigger": "Before a background compositing job",
+    "signature": "(scene)",
+    "description": "Called prior to starting a compositor background job",
+    "source": "source/blender/python/intern/bpy_app_handlers.cc"
+  },
+  {
+    "name": "composite_post",
+    "trigger": "After a background compositing job",
+    "signature": "(scene)",
+    "description": "Runs after a compositor background job finishes",
+    "source": "source/blender/python/intern/bpy_app_handlers.cc"
+  },
+  {
+    "name": "composite_cancel",
+    "trigger": "When a background compositing job is canceled",
+    "signature": "(scene)",
+    "description": "Called if a compositor job ends early due to cancellation",
+    "source": "source/blender/python/intern/bpy_app_handlers.cc"
+  },
+  {
+    "name": "animation_playback_pre",
+    "trigger": "When animation playback starts",
+    "signature": "(scene, depsgraph)",
+    "description": "Runs at the start of animation playback with scene and depsgraph",
+    "source": "source/blender/python/intern/bpy_app_handlers.cc"
+  },
+  {
+    "name": "animation_playback_post",
+    "trigger": "When animation playback ends",
+    "signature": "(scene, depsgraph)",
+    "description": "Called after animation playback stops",
+    "source": "source/blender/python/intern/bpy_app_handlers.cc"
+  },
+  {
+    "name": "translation_update_post",
+    "trigger": "After translation settings are updated",
+    "signature": "()",
+    "description": "Runs when Blender language/translation settings change",
+    "source": "source/blender/python/intern/bpy_app_handlers.cc"
+  },
+  {
+    "name": "blend_import_pre",
+    "trigger": "Before linking or appending data from another blend file",
+    "signature": "(blend_import_context)",
+    "description": "Receives a BlendImportContext before a link/append operation starts",
+    "source": "source/blender/python/intern/bpy_app_handlers.cc"
+  },
+  {
+    "name": "blend_import_post",
+    "trigger": "After linking or appending data from another blend file",
+    "signature": "(blend_import_context)",
+    "description": "Called after link/append completes with the BlendImportContext",
+    "source": "source/blender/python/intern/bpy_app_handlers.cc"
+  },
+  {
+    "name": "persistent",
+    "trigger": "Decorator used to mark handler functions to survive file loads",
+    "signature": "(function)",
+    "description": "Use as @bpy.app.handlers.persistent to keep a callback when loading new files",
+    "source": "source/blender/python/intern/bpy_app_handlers.cc"
+  }
+]
