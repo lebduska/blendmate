@@ -1,0 +1,4 @@
+- Prefer incremental changes
+- No new libraries without reason
+- WebSocket protocol changes must update docs/ARCHITECTURE.md
+- Blender add-on must never block UI thread
