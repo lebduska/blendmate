@@ -1,49 +1,73 @@
-import { useState } from "react";
-import reactLogo from "./assets/react.svg";
-import { invoke } from "@tauri-apps/api/core";
+import { FormEvent, useMemo, useState } from "react";
 import "./App.css";
+import { useBlendmateSocket } from "./useBlendmateSocket";
 
 function App() {
-  const [greetMsg, setGreetMsg] = useState("");
-  const [name, setName] = useState("");
+  const { status, lastMessage, sendJson } = useBlendmateSocket();
+  const [outgoing, setOutgoing] = useState("Hello from Blendmate!");
 
-  async function greet() {
-    // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-    setGreetMsg(await invoke("greet", { name }));
-  }
+  const statusLabel = useMemo(() => {
+    if (status === "connected") return "Connected";
+    if (status === "connecting") return "Connecting";
+    return "Disconnected";
+  }, [status]);
+
+  const handleSend = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    sendJson({ type: "message", text: outgoing });
+  };
 
   return (
-    <main className="container">
-      <h1>Welcome to Tauri + React</h1>
+    <main className="page">
+      <header className="hero">
+        <p className="eyebrow">Blendmate status</p>
+        <h1>WebSocket bridge</h1>
+        <p className="lede">
+          Connects to <code>ws://127.0.0.1:32123</code> and echoes the latest
+          message from Blender.
+        </p>
+      </header>
 
-      <div className="row">
-        <a href="https://vite.dev" target="_blank">
-          <img src="/vite.svg" className="logo vite" alt="Vite logo" />
-        </a>
-        <a href="https://tauri.app" target="_blank">
-          <img src="/tauri.svg" className="logo tauri" alt="Tauri logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <p>Click on the Tauri, Vite, and React logos to learn more.</p>
+      <section className="panel">
+        <div className={`status status-${status}`}>
+          <div className="status-dot" aria-hidden />
+          <div>
+            <p className="status-label">{statusLabel}</p>
+            <p className="status-subtext">Native WebSocket client</p>
+          </div>
+        </div>
 
-      <form
-        className="row"
-        onSubmit={(e) => {
-          e.preventDefault();
-          greet();
-        }}
-      >
-        <input
-          id="greet-input"
-          onChange={(e) => setName(e.currentTarget.value)}
-          placeholder="Enter a name..."
-        />
-        <button type="submit">Greet</button>
-      </form>
-      <p>{greetMsg}</p>
+        <form className="send" onSubmit={handleSend}>
+          <label className="send-label" htmlFor="send-input">
+            Send test payload
+          </label>
+          <div className="send-row">
+            <input
+              id="send-input"
+              value={outgoing}
+              onChange={(event) => setOutgoing(event.target.value)}
+              placeholder="Message to send as JSON"
+            />
+            <button type="submit" disabled={status !== "connected"}>
+              Send
+            </button>
+          </div>
+          <p className="send-helper">
+            Payload shape: {"{ type: 'message', text: '<your text>' }"}
+          </p>
+        </form>
+      </section>
+
+      <section className="panel">
+        <p className="panel-title">Last message</p>
+        <div className="message-box">
+          {lastMessage ? (
+            <pre>{lastMessage}</pre>
+          ) : (
+            <p className="muted">Waiting for incoming data…</p>
+          )}
+        </div>
+      </section>
     </main>
   );
 }
