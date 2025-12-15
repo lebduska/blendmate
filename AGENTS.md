@@ -14,6 +14,18 @@ Active GN node in Blender -> WebSocket -> app shows node help.
 - Prefer deterministic, cacheable outputs over narrative explanations.
 
 ---
+## Execution Model (CLI-first)
+
+- This project is operated primarily via local CLI agent runs.
+- Agents are expected to run in a real TTY environment.
+- Determinism, reproducibility, and auditability are required for non-trivial tasks.
+- Web-based agent runs are acceptable only for small, low-risk changes.
+
+Note:
+- This section describes the *environmental assumptions* under which agents operate.
+- It is not an instruction for humans to manually follow steps unless explicitly stated.
+
+---
 ## Workflow Rules
 
 - Small PRs only
@@ -24,11 +36,20 @@ Active GN node in Blender -> WebSocket -> app shows node help.
 ---
 ## Issue & Task Discovery
 
+- Default execution context is a local CLI agent run with access to git and GitHub CLI.
 - Active tasks are tracked in GitHub Issues.
-- Issue instructions are authoritative; do not infer missing requirements.
-- If an issue number is referenced (e.g. "issue #11"), the agent must:
-  1. Locate the issue via the repository's Issues list, or
-  2. Ask for the issue body if it is not available locally.
+- GitHub Issues are the single source of truth for task requirements.
+- When an issue number is referenced (e.g. "issue #12"), the agent MUST fetch the issue before starting any work.
+
+Required procedure:
+1. Fetch the issue via GitHub CLI:
+   `gh issue view <N> --repo lebduska/blendmate --json title,body,url,labels`
+2. Treat the fetched issue body as authoritative instructions.
+3. Do not infer, extend, or invent requirements beyond the issue text.
+4. If requirements are missing or ambiguous, ask for clarification by commenting on the issue and STOP.
+
+- Do not search for issue numbers in the repository filesystem.
+- Do not proceed based on assumptions if the issue content is not available.
 
 ---
 ## Knowledge Extraction & Caching
@@ -59,8 +80,40 @@ Active GN node in Blender -> WebSocket -> app shows node help.
 - Validate generated JSON before committing.
 
 ---
+## Logging & Run Records
+
+Goal: enable post-hoc analysis of prompt quality, agent behavior (Cursor vs Codex), and throughput.
+
+- Agents do NOT need to know how they are launched (e.g. via `ops/codexrun.sh`); wrappers exist to enforce logging and environment guarantees for humans and automation.
+
+- For any non-trivial task (protocol/knowledge/extraction/addon/app), runs SHOULD be logged.
+- Preferred format: one run = one Markdown log file under `logs/`.
+- Logs are append-only artifacts and may be committed, or attached to PRs, depending on sensitivity.
+
+Minimum contents per run log:
+- Timestamp start/end + duration
+- Agent type (cursor/codex/other) + command used
+- Git context (repo, branch, HEAD commit)
+- Issue reference (URL + `gh issue view <N>` output snippet)
+- Prompt / instruction used (exact text)
+- Key terminal transcript (commands + output)
+- Result summary (files touched) + diff link or patch (optional)
+
+Recommended filename:
+- `logs/YYYY-MM-DD-HHMMSS-issue<N>-<agent>-<label>.md`
+
+Implementation note:
+- This is achieved via a local wrapper (e.g., `script` or `tee`) that captures stdout/stderr.
+- Do NOT re-generate long transcripts via the model (wastes tokens). Capture them at the shell level.
+
+Database vs files:
+- Start with file logs (Markdown/JSON) for simplicity.
+- If you need cross-run analytics later, add a small SQLite index (run_id, issue, agent, start/end, duration, outcome) that points to the log file path.
+
+---
 ## Agent Behavior Guidelines
 
+- Treat this document as an agent contract: it defines constraints and expectations, not user-facing instructions.
 - Do not attempt to crawl large external repositories unless explicitly instructed.
 - If required information is missing, stop and request clarification.
 - Avoid "best guess" implementations when dealing with protocols or APIs.
