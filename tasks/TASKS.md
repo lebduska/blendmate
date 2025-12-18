@@ -10,8 +10,12 @@ Source of truth for execution is GitHub Issues + labels, but this stays clean an
 
 ## Now (P0)
 ### Ready for Codex
+- [ ] **(app)** UI/UX Design: NodeHelpView & Core Layout (#23)
+      DoD: Core layout, CSS styling for Markdown, and responsive preview container.
+
+### Blocked
 - [ ] **(app)** NodeHelpView: render markdown + preview + pitfalls/patterns (#5)
-      DoD: Renders KB entry based on node_id with image preview.
+      Blocked by: #23 (UI Design)
 
 ## Next (P1)
 - [ ] **(kb)** Loader: `node_id -> kb/gn/<node_id>/{meta.json,info.md,preview.webp}` (#4)

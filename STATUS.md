@@ -10,6 +10,7 @@
 - [x] Project logo and icons ("soulmate" Blender logo)
 
 ## IN PROGRESS
+- [ ] UI/UX Design: NodeHelpView & Core Layout (#23)
 - [ ] Initializing core knowledge base content.
 
 ## NEXT
