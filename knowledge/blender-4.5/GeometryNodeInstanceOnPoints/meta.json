@@ -1,0 +1,8 @@
+{
+  "node_id": "GeometryNodeInstanceOnPoints",
+  "name": "Instance on Points",
+  "category": "Instances",
+  "description": "Places instances (copies) of geometry onto input points.",
+  "blender_version": "4.5",
+  "tags": ["instances", "points", "scattering"]
+}

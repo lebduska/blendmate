@@ -9,6 +9,7 @@ export default function App() {
   const { status, lastMessage, sendJson } = useBlendmateSocket();
   const [activeTab, setActiveTab] = useState<'nodes' | 'stats' | 'chat'>('nodes');
   const [frame, setFrame] = useState(1);
+  const [testNodeId, setTestNodeId] = useState('GeometryNodeInstanceOnPoints');
 
   useEffect(() => {
     const interval = setInterval(() => setFrame(f => (f % 250) + 1), 40);
@@ -35,12 +36,27 @@ export default function App() {
 
         {/* Node Help View (Mockup for #23) */}
         {activeTab === 'nodes' && (
-          <section className="relative group">
-            <div className="absolute -inset-0.5 bg-gradient-to-r from-blendmate-blue to-blendmate-orange opacity-20 blur group-hover:opacity-40 transition duration-1000"></div>
-            <div className="relative bg-blendmate-gray rounded-3xl p-6 border border-white/10 shadow-2xl">
-              <NodeHelpView />
+          <div className="space-y-4">
+            <div className="flex gap-2 mb-4">
+              {['GeometryNodeInstanceOnPoints', 'GeometryNodeCombineXYZ', 'GeometryNodeSeparateXYZ', 'Unknown'].map(id => (
+                <button 
+                  key={id}
+                  onClick={() => setTestNodeId(id)}
+                  className={`px-3 py-1 rounded-full text-[9px] font-bold uppercase transition-all ${
+                    testNodeId === id ? 'bg-blendmate-orange text-black' : 'bg-white/5 text-white/40 hover:bg-white/10'
+                  }`}
+                >
+                  {id.replace('GeometryNode', '')}
+                </button>
+              ))}
             </div>
-          </section>
+            <section className="relative group">
+              <div className="absolute -inset-0.5 bg-gradient-to-r from-blendmate-blue to-blendmate-orange opacity-20 blur group-hover:opacity-40 transition duration-1000"></div>
+              <div className="relative bg-blendmate-gray rounded-3xl p-6 border border-white/10 shadow-2xl">
+                <NodeHelpView nodeId={testNodeId} />
+              </div>
+            </section>
+          </div>
         )}
 
         {/* Other Tabs content placeholders... */}

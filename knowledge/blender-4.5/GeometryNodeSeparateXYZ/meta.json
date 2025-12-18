@@ -1,0 +1,8 @@
+{
+  "node_id": "GeometryNodeSeparateXYZ",
+  "name": "Separate XYZ",
+  "category": "Vector",
+  "description": "Splits a vector into its individual X, Y, and Z components.",
+  "blender_version": "4.5",
+  "tags": ["vector", "separate", "components"]
+}
