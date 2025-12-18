@@ -1,4 +1,4 @@
-# blendmate
+# <img src="blendmate-app/src/assets/logo.svg" width="48" height="48" valign="middle"> blendmate
 
 Osobní parťák pro vibe práci s Blenderem.
 

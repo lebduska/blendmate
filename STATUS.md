@@ -7,6 +7,7 @@
 - [x] Blender 4.5 handler inventory extraction (#18)
 - [x] Blender 4.5 protocol event catalog generation (#13)
 - [x] Repository task tracking refactoring and GitHub synchronization (#21)
+- [x] Project logo and icons ("soulmate" Blender logo)
 
 ## IN PROGRESS
 - [ ] Initializing core knowledge base content.

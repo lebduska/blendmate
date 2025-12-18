@@ -1,0 +1,24 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle (optional, keeping it transparent for now like a logo) -->
+  
+  <!-- "Soulmate" version of Blender logo: Two interlocking/facing "pupils" forming a hint of a heart -->
+  <g transform="translate(256, 256)">
+    <!-- Main Orange Body (Left) -->
+    <path d="M-40,-120 C-150,-120 -220,-20 -220,80 C-220,180 -140,240 -40,240 C10,240 60,200 60,200 L60,140 C60,140 20,170 -40,170 C-90,170 -140,130 -140,80 C-140,30 -90,-10 -40,-10 C10,-10 60,20 60,20 L60,-40 C60,-40 10,-70 -40,-70 L-40,-120" fill="#EA7600" />
+    
+    <!-- Main Orange Body (Right, Mirrored and shifted) -->
+    <path d="M40,-120 C150,-120 220,-20 220,80 C220,180 140,240 40,240 C-10,240 -60,200 -60,200 L-60,140 C-60,140 -20,170 40,170 C90,170 140,130 140,80 C140,30 90,-10 40,-10 C-10,-10 -60,20 -60,20 L-60,-40 C-60,-40 -10,-70 40,-70 L40,-120" fill="#2D5E9E" opacity="0.8" />
+
+    <!-- Center Eye (Left) -->
+    <circle cx="-40" cy="80" r="45" fill="white" />
+    <circle cx="-40" cy="80" r="20" fill="#222" />
+
+    <!-- Center Eye (Right) -->
+    <circle cx="40" cy="80" r="45" fill="white" />
+    <circle cx="40" cy="80" r="20" fill="#222" />
+    
+    <!-- Top Connectors (Blender "arms") -->
+    <path d="M-40,-120 L-10,-180 L20,-140" stroke="#EA7600" stroke-width="30" fill="none" stroke-linecap="round" />
+    <path d="M40,-120 L10,-180 L-20,-140" stroke="#2D5E9E" stroke-width="30" fill="none" stroke-linecap="round" opacity="0.8" />
+  </g>
+</svg>
