@@ -15,7 +15,7 @@ Source of truth for execution is GitHub Issues + labels, but this stays clean an
 
 ## Next (P1)
 - [ ] **(kb)** Loader: `node_id -> kb/gn/<node_id>/{meta.json,info.md,preview.webp}` (#4)
-- [ ] **(kb)** Seed entries: Combine XYZ, Separate XYZ, Instance on Points (#25)
+- [ ] **(kb)** Seed entries: Combine XYZ, Separate XYZ, Instance on Points (#22)
 - [ ] **(protocol)** Document Blendmate protocol v0.1 (#12, #15)
 - [ ] **(protocol)** Event catalog for Blender 4.5 (protocol v0.1) (#14)
 - [ ] **(knowledge)** Blender knowledge extraction pipeline (Epic #16)
