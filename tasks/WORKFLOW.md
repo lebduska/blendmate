@@ -124,6 +124,21 @@ If a doc can be "lost" by not opening the right folder, we treat that as a workf
 - Clear DoD in the issue body
 - Manual test steps included
 
+### Naming Conventions & Linking
+
+#### Branches
+Používej formát: `type/id-summary`
+- `feat/23-node-help-ui`
+- `fix/15-connection-leak`
+- `chore/setup-linters`
+
+#### Linking to Issues
+GitHub automaticky propojí PR s issue a po mergi ho uzavře, pokud v popisu PR (nebo v commitu) použiješ klíčové slovo:
+- `Fixes #23`
+- `Closes #15`
+
+Tato klíčová slova jsou součástí naší **Pull Request šablony**.
+
 ---
 
 ## Appendix: why this exists
