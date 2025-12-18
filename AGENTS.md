@@ -28,10 +28,13 @@ Note:
 ---
 ## Workflow Rules
 
-- Small PRs only
-- One issue = one PR
-- No breaking changes without docs update
-- Prefer adding new artifacts over mutating existing ones
+- **Jediný zdroj pravdy (SSOT):** GitHub Issues. Vždy si nejdříve načti detaily úkolu přes `gh issue view <N>`.
+- **1 Issue = 1 PR:** Každý úkol musí mít svou vlastní větev a vlastní Pull Request.
+- **Větve (Branches):** Používej formát `{id}-{summary}` (např. `23-ui-layout`).
+- **Propojení:** V popisu PR vždy uveď `Fixes #<id>`, aby se issue po mergi automaticky uzavřelo.
+- **Komentování:** Po dokončení práce přidej k issue stručný komentář o tom, co bylo uděláno, a odkaz na PR.
+- **Clean Desk:** Před ukončením session musí být všechny změny buď commitnuty do příslušné větve, nebo zahozeny. Žádný lokální nepořádek.
+- **Bez dokumentace není hotovo:** Pokud měníš chování, aktualizuj `CONTEXT.md`.
 
 ---
 ## Issue & Task Discovery

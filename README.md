@@ -2,10 +2,13 @@
 
 Osobní parťák pro vibe práci s Blenderem.
 
-Side-app, která běží vedle Blenderu a ukazuje kontextový help (primárně Geometry Nodes),
-včetně ukázek, poznámek a časem i diagnostiky.
+## 🚀 Úkoly a stav vývoje
+Tento projekt používá **GitHub Issues** jako jediný zdroj pravdy pro plánování a sledování úkolů.
+- [Seznam otevřených úkolů](https://github.com/lebduska/blendmate/issues)
+- [Aktuální priority (P0)](https://github.com/lebduska/blendmate/issues?q=is%3Aopen+is%3Aissue+label%3Aprio%3Ap0)
 
-> Working title. Primárně vzniká pro mě. Název i forma se mohou časem změnit.
+## 🤖 Pro AI Agenty
+Pokud jsi AI agent, nejdříve si přečti [AGENTS.md](./AGENTS.md), kde najdeš pravidla pro práci v tomto repozitáři.
 
 ## Ruční testování (Blender add-on WS události)
 
