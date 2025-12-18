@@ -1,0 +1,53 @@
+name: "🚀 Nový Úkol (Task)"
+description: "Vytvořit zadání pro novou funkci nebo vylepšení"
+title: "feat(area): krátký popis"
+labels: ["codex:ready"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 🎯 Goal
+        Stručný popis toho, čeho chceme dosáhnout.
+
+  - type: textarea
+    id: goal
+    attributes:
+      label: "Cíl úkolu"
+      placeholder: "Např. Přidat tlačítko pro uložení konfigurace..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: dod
+    attributes:
+      label: "✅ Definition of Done (DoD)"
+      description: "Seznam bodů, které musí být splněny."
+      placeholder: |
+        - [ ] Bod 1
+        - [ ] Bod 2
+    validations:
+      required: true
+
+  - type: textarea
+    id: testing
+    attributes:
+      label: "🧪 Manuální testovací kroky"
+      description: "Jak ověřit, že je vše v pořádku."
+      placeholder: |
+        1. Spusť aplikaci...
+        2. Klikni na...
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - app
+        - addon
+        - kb
+        - protocol
+        - ops
+    validations:
+      required: true

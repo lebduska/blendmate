@@ -1,0 +1,22 @@
+name: "🐛 Hlášení chyby (Bug)"
+description: "Nahlásit problém v aplikaci"
+labels: ["bug"]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: "Popis chyby"
+      description: "Co se děje špatně?"
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: "Kroky k reprodukci"
+      placeholder: |
+        1. Jdi na...
+        2. Klikni na...
+  - type: textarea
+    id: expected
+    attributes:
+      label: "Očekávané chování"
