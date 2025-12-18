@@ -1,6 +1,9 @@
 import { useState, useEffect } from "react";
 import { useBlendmateSocket } from "./useBlendmateSocket";
 import NodeHelpView from "./components/NodeHelpView";
+import HUD from "./components/layout/HUD";
+import Footer from "./components/layout/Footer";
+import Card from "./components/ui/Card";
 
 export default function App() {
   const { status, lastMessage, sendJson } = useBlendmateSocket();
@@ -15,49 +18,19 @@ export default function App() {
   return (
     <main className="flex flex-col h-screen overflow-hidden bg-blendmate-dark text-white font-sans selection:bg-blendmate-blue/30">
       
-      {/* --- TOP HUD NAVIGATION --- */}
-      <nav 
-        data-tauri-drag-region
-        className="flex items-center justify-between px-6 py-4 border-b border-white/5 bg-blendmate-gray/20 backdrop-blur-xl cursor-default"
-      >
-        <div data-tauri-drag-region className="flex items-center gap-4 select-none">
-          <div className="relative">
-            <div className={`w-3 h-3 rounded-full ${status === 'connected' ? 'bg-green-500' : 'bg-red-500'} shadow-[0_0_15px_rgba(34,197,94,0.6)]`} />
-            {status === 'connected' && <div className="absolute inset-0 w-3 h-3 rounded-full bg-green-500 animate-ping opacity-75" />}
-          </div>
-          <h1 className="text-sm font-black tracking-[0.2em] uppercase italic">
-            Blend<span className="text-blendmate-blue">Mate</span> <span className="text-[10px] font-normal opacity-30 ml-2">v0.1.0</span>
-          </h1>
-        </div>
-
-        <div className="flex bg-black/40 p-1 rounded-full border border-white/5">
-          {(['nodes', 'stats', 'chat'] as const).map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`px-4 py-1.5 rounded-full text-[10px] font-bold uppercase transition-all ${
-                activeTab === tab ? 'bg-blendmate-blue text-black' : 'text-white/40 hover:text-white'
-              }`}
-            >
-              {tab}
-            </button>
-          ))}
-        </div>
-      </nav>
+      <HUD 
+        status={status} 
+        activeTab={activeTab} 
+        setActiveTab={setActiveTab} 
+      />
 
       {/* --- MAIN ADVENTURE AREA --- */}
       <div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar">
         
-        {/* Real-time Stats Card */}
+        {/* Real-time Stats Cards */}
         <div className="grid grid-cols-2 gap-4">
-          <div className="bg-blendmate-gray/40 border border-white/5 rounded-2xl p-4 backdrop-blur-sm">
-            <p className="text-[10px] uppercase tracking-wider opacity-40 mb-1">Current Frame</p>
-            <p className="text-3xl font-mono font-black text-blendmate-orange italic">{frame}</p>
-          </div>
-          <div className="bg-blendmate-gray/40 border border-white/5 rounded-2xl p-4 backdrop-blur-sm">
-            <p className="text-[10px] uppercase tracking-wider opacity-40 mb-1">Scene Verts</p>
-            <p className="text-3xl font-mono font-black text-blendmate-blue italic">1.2M</p>
-          </div>
+          <Card label="Current Frame" value={frame} colorClass="text-blendmate-orange" />
+          <Card label="Scene Verts" value="1.2M" colorClass="text-blendmate-blue" />
         </div>
 
         {/* Node Help View (Mockup for #23) */}
@@ -87,34 +60,7 @@ export default function App() {
         </div>
       </div>
 
-      {/* --- CYBERPUNK FOOTER / CONSOLE --- */}
-      <footer 
-        data-tauri-drag-region
-        className="p-4 bg-black/60 border-t border-white/5 backdrop-blur-2xl cursor-default"
-      >
-        <div className="flex items-center gap-3 mb-3">
-          <input 
-            type="text" 
-            placeholder="Ask your soulmate anything..." 
-            className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-xs focus:outline-none focus:border-blendmate-blue/50 transition-all"
-          />
-          <button 
-            onClick={() => sendJson({type: "ping"})}
-            className="bg-blendmate-blue text-black p-2 rounded-xl hover:scale-105 transition-transform"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 5l7 7-7 7M5 5l7 7-7 7" /></svg>
-          </button>
-        </div>
-        <div className="font-mono text-[9px] text-white/20 flex justify-between items-center">
-          <div className="truncate max-w-[70%]">
-            {lastMessage ? `[RECV] ${JSON.stringify(lastMessage)}` : '> Awaiting Blender signal...'}
-          </div>
-          <div className="flex gap-2">
-            <span className="animate-pulse">●</span>
-            <span>60 FPS</span>
-          </div>
-        </div>
-      </footer>
+      <Footer lastMessage={lastMessage} sendJson={sendJson} />
 
       <style>{`
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
