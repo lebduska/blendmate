@@ -1,0 +1,26 @@
+name: CI Build Check
+
+on:
+  push:
+    branches: [ main, chore/ui-design-setup ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: blendmate-app/package-lock.json
+
+      - name: Install dependencies
+        run: cd blendmate-app && npm install
+
+      - name: Build check (Frontend)
+        run: cd blendmate-app && npm run build
