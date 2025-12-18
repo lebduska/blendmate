@@ -1,13 +1,19 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
+@theme {
+  --color-blendmate-dark: #0a0a0a;
+  --color-blendmate-gray: #1a1a1a;
+  --color-blendmate-orange: #ff9d5c;
+  --color-blendmate-blue: #3d94ff;
+}
+
+/* Pokud ani toto neobarví pozadí na černo, CSS se vůbec nenačítá */
 :root {
-  background-color: #242424;
+  background-color: #0a0a0a !important;
   color: white;
 }
 
 body {
   margin: 0;
-  overflow: hidden;
+  background-color: #0a0a0a;
 }
