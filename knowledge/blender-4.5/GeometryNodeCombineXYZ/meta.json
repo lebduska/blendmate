@@ -1,0 +1,8 @@
+{
+  "node_id": "GeometryNodeCombineXYZ",
+  "name": "Combine XYZ",
+  "category": "Vector",
+  "description": "Combines individual X, Y, and Z components into a single vector.",
+  "blender_version": "4.5",
+  "tags": ["vector", "combine", "components"]
+}

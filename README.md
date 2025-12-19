@@ -10,6 +10,9 @@ Tento projekt používá **GitHub Issues** jako jediný zdroj pravdy pro plánov
 ## 🤖 Pro AI Agenty
 Pokud jsi AI agent, nejdříve si přečti [AGENTS.md](./AGENTS.md), kde najdeš pravidla pro práci v tomto repozitáři.
 
+## 🔌 Blender Add-on
+Pro propojení s Blenderem je potřeba nainstalovat náš add-on. Více informací najdeš v [blendmate-addon/README.md](./blendmate-addon/README.md).
+
 ## Ruční testování (Blender add-on WS události)
 
 1. **Spusť Blendmate aplikaci** (WebSocket server):
