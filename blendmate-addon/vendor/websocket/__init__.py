@@ -17,7 +17,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from ._abnf import *  # noqa: F401,F403
+from ._abnf import *  # noqa: F bv4h)j))o)pop)úoopúu)i01,F403
 from ._app import (  # noqa: F401
     WebSocketApp as WebSocketApp,
     set_reconnect as set_reconnect,
@@ -28,3 +28,9 @@ from ._logging import *  # noqa: F401,F403
 from ._socket import *  # noqa: F401,F403
 
 __version__ = "1.9.0"
+
+# ---------------------------------------------------------------------------
+# Vendoring compatibility
+# Make this vendored package importable as top-level `websocket`.
+import sys as _sys
+_sys.modules.setdefault("websocket", _sys.modules[__name__])

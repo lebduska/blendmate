@@ -1,77 +1,141 @@
-import bpy
 import json
 import threading
 import time
-from .vendor import websocket
+import queue
+import bpy
+
+try:
+    import websocket
+except ModuleNotFoundError:
+    from .vendor import websocket
 
 # Global connection state
 _ws = None
 _thread = None
-_should_run = False
+_should_run = threading.Event()
+_last_node_id = None
+_message_queue = queue.Queue()
+
+def info(msg):
+    print(f"[Blendmate] {msg}")
 
 def send_to_blendmate(data):
-    global _ws
-    if _ws and _ws.sock and _ws.sock.connected:
-        try:
-            _ws.send(json.dumps(data))
-        except Exception as e:
-            print(f"[Blendmate] Send error: {e}")
+    """Adds a message to the queue to be sent by the timer."""
+    global _message_queue
+    _message_queue.put(data)
 
-# Handlers for Issue #19
-@bpy.app.handlers.persistent
-def on_save_post(scene):
-    send_to_blendmate({"type": "event", "event": "save_post", "filename": bpy.data.filepath})
+def process_queue():
+    """Timer callback to process the message queue and send via WebSocket."""
+    global _ws, _message_queue
 
-@bpy.app.handlers.persistent
-def on_load_post(scene):
-    send_to_blendmate({"type": "event", "event": "load_post", "filename": bpy.data.filepath})
+    if not _should_run.is_set():
+        return None
 
-@bpy.app.handlers.persistent
-def on_depsgraph_update(scene, depsgraph):
-    # Throttlovaný update by byl lepší, ale pro v0.1 stačí poslat signál
-    send_to_blendmate({"type": "event", "event": "depsgraph_update"})
+    is_connected = False
+    try:
+        if _ws:
+            if hasattr(_ws, "sock") and _ws.sock:
+                is_connected = getattr(_ws.sock, "connected", False)
+    except:
+        is_connected = False
+
+    if is_connected:
+        while not _message_queue.empty():
+            try:
+                data = _message_queue.get_nowait()
+                _ws.send(json.dumps(data))
+                _message_queue.task_done()
+            except queue.Empty:
+                break
+            except Exception as e:
+                info(f"Send error: {e}")
+                break
+    return 0.1
+
+def get_active_gn_node():
+    """Returns the ID of the active node in the Geometry Nodes editor."""
+    try:
+        if not hasattr(bpy.context, "screen") or bpy.context.screen is None:
+            return None
+
+        for area in bpy.context.screen.areas:
+            if area.type == 'NODE_EDITOR':
+                space = area.spaces.active
+                if space and hasattr(space, "tree_type") and space.tree_type == 'GeometryNodeTree':
+                    node_tree = space.node_tree
+                    if node_tree and node_tree.nodes.active:
+                        active_node = node_tree.nodes.active
+                        return active_node.bl_idname
+    except Exception as e:
+        print(f"[Blendmate] Context error in get_active_gn_node: {e}")
+    return None
+
+from . import preferences
 
 def ws_thread():
-    global _ws, _should_run
-    while _should_run:
-        try:
-            # TODO: Přidat konfigurovatelnou adresu z UI
-            _ws = websocket.WebSocketApp("ws://127.0.0.1:32123",
-                                        on_message=lambda ws, msg: print(f"[Blendmate] Recv: {msg}"),
-                                        on_error=lambda ws, err: print(f"[Blendmate] WS Error: {err}"),
-                                        on_close=lambda ws, close_status, close_msg: print("[Blendmate] WS Closed"))
-            _ws.run_forever()
-        except Exception as e:
-            print(f"[Blendmate] Connection error: {e}")
-        time.sleep(5) # Reconnect interval
+    global _ws
+    info(f"WS Thread trying to start...")
+    try:
+        # Get URL from preferences
+        prefs = preferences.get_preferences()
+        url = prefs.ws_url if prefs else "ws://127.0.0.1:32123"
+        
+        info(f"Target: {url}")
+        while _should_run.is_set():
+            try:
+                info("Attempting connection...")
+                _ws = websocket.WebSocketApp(url,
+                                            on_open=lambda ws: info("WS Connected (on_open)"),
+                                            on_message=lambda ws, msg: info(f"Recv: {msg}"),
+                                            on_error=lambda ws, err: info(f"WS Error: {err}"),
+                                            on_close=lambda ws, close_status, close_msg: info(f"WS Closed: {close_status} {close_msg}"))
+                _ws.run_forever(ping_interval=10, ping_timeout=5)
+            except Exception as e:
+                if _should_run.is_set():
+                    info(f"Loop error: {e}")
+
+            if _should_run.is_set():
+                info("Waiting 5s before reconnect...")
+                _should_run.wait(timeout=5)
+    except Exception as top_e:
+        info(f"CRITICAL WS Thread error: {top_e}")
+    info("WS Thread exiting")
 
 def register():
-    global _thread, _should_run
+    global _thread
+    info("Registering Connection module")
     
-    # Register handlers
-    if on_save_post not in bpy.app.handlers.save_post:
-        bpy.app.handlers.save_post.append(on_save_post)
-    if on_load_post not in bpy.app.handlers.load_post:
-        bpy.app.handlers.load_post.append(on_load_post)
-    if on_depsgraph_update not in bpy.app.handlers.depsgraph_update_post:
-        bpy.app.handlers.depsgraph_update_post.append(on_depsgraph_update)
+    # Register timer for queue processing
+    if not bpy.app.timers.is_registered(process_queue):
+        bpy.app.timers.register(process_queue, first_interval=0.1)
+        info("Timer registered")
 
     # Start WS thread
-    _should_run = True
+    _should_run.set()
     _thread = threading.Thread(target=ws_thread, daemon=True)
     _thread.start()
+    info("WS Thread spawned")
 
 def unregister():
-    global _ws, _should_run
+    global _ws, _thread
     
-    # Unregister handlers
-    if on_save_post in bpy.app.handlers.save_post:
-        bpy.app.handlers.save_post.remove(on_save_post)
-    if on_load_post in bpy.app.handlers.load_post:
-        bpy.app.handlers.load_post.remove(on_load_post)
-    if on_depsgraph_update in bpy.app.handlers.depsgraph_update_post:
-        bpy.app.handlers.depsgraph_update_post.remove(on_depsgraph_update)
+    # 1. Stop timer
+    if bpy.app.timers.is_registered(process_queue):
+        bpy.app.timers.unregister(process_queue)
 
-    _should_run = False
+    # 2. Signal thread to stop
+    _should_run.clear()
+    
+    # 3. Close websocket immediately
     if _ws:
-        _ws.close()
+        try:
+            _ws.close()
+        except:
+            pass
+            
+    # 4. Wait for thread to exit (briefly)
+    if _thread and _thread.is_alive():
+        _thread.join(timeout=0.5)
+    
+    _thread = None
+    _ws = None
