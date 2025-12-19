@@ -10,7 +10,7 @@ class BLENDMATE_PT_panel(bpy.types.Panel):
 
     def draw(self, context):
         layout = self.layout
-        layout.label(text=f"Version: 0.5.0")
+        layout.label(text=f"Version: 1.0.0")
 
         status = "Disconnected"
         try:

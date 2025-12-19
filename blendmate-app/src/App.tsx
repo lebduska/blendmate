@@ -9,12 +9,19 @@ export default function App() {
   const { status, lastMessage, sendJson } = useBlendmateSocket();
   const [activeTab, setActiveTab] = useState<'nodes' | 'stats' | 'chat'>('nodes');
   const [frame, setFrame] = useState(1);
-  const [testNodeId, setTestNodeId] = useState('GeometryNodeInstanceOnPoints');
+  const [currentNodeId, setCurrentNodeId] = useState('GeometryNodeInstanceOnPoints');
 
+  // React to incoming context messages from Blender
   useEffect(() => {
-    const interval = setInterval(() => setFrame(f => (f % 250) + 1), 40);
-    return () => clearInterval(interval);
-  }, []);
+    if (lastMessage) {
+      if (lastMessage.type === 'context' && lastMessage.node_id) {
+        setCurrentNodeId(lastMessage.node_id as string);
+        setActiveTab('nodes');
+      } else if (lastMessage.type === 'event' && lastMessage.event === 'frame_change') {
+        setFrame(lastMessage.frame as number);
+      }
+    }
+  }, [lastMessage]);
 
   return (
     <main className="flex flex-col h-screen overflow-hidden bg-blendmate-dark text-white font-sans selection:bg-blendmate-blue/30">
@@ -37,13 +44,13 @@ export default function App() {
         {/* Node Help View (Mockup for #23) */}
         {activeTab === 'nodes' && (
           <div className="space-y-4">
-            <div className="flex gap-2 mb-4">
+            <div className="flex gap-2 mb-4 overflow-x-auto pb-2 no-scrollbar">
               {['GeometryNodeInstanceOnPoints', 'GeometryNodeCombineXYZ', 'GeometryNodeSeparateXYZ', 'Unknown'].map(id => (
                 <button 
                   key={id}
-                  onClick={() => setTestNodeId(id)}
-                  className={`px-3 py-1 rounded-full text-[9px] font-bold uppercase transition-all ${
-                    testNodeId === id ? 'bg-blendmate-orange text-black' : 'bg-white/5 text-white/40 hover:bg-white/10'
+                  onClick={() => setCurrentNodeId(id)}
+                  className={`px-3 py-1 rounded-full text-[9px] font-bold uppercase whitespace-nowrap transition-all ${
+                    currentNodeId === id ? 'bg-blendmate-orange text-black' : 'bg-white/5 text-white/40 hover:bg-white/10'
                   }`}
                 >
                   {id.replace('GeometryNode', '')}
@@ -53,7 +60,7 @@ export default function App() {
             <section className="relative group">
               <div className="absolute -inset-0.5 bg-gradient-to-r from-blendmate-blue to-blendmate-orange opacity-20 blur group-hover:opacity-40 transition duration-1000"></div>
               <div className="relative bg-blendmate-gray rounded-3xl p-6 border border-white/10 shadow-2xl">
-                <NodeHelpView nodeId={testNodeId} />
+                <NodeHelpView nodeId={currentNodeId} />
               </div>
             </section>
           </div>

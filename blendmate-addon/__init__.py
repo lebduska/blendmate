@@ -1,7 +1,9 @@
+print("[Blendmate] !!! INITIAL MODULE LOAD !!!")
+
 bl_info = {
     "name": "Blendmate Connector",
     "author": "Jiri Lebduska",
-    "version": (0, 5, 0),
+    "version": (1, 0, 0),
     "blender": (4, 0, 0),
     "location": "System > Blendmate",
     "description": "Connects Blender to the Blendmate desktop app via WebSockets.",
