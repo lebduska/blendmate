@@ -33,9 +33,8 @@ def process_queue():
 
     is_connected = False
     try:
-        if _ws:
-            if hasattr(_ws, "sock") and _ws.sock:
-                is_connected = getattr(_ws.sock, "connected", False)
+        if _ws and hasattr(_ws, "sock") and _ws.sock:
+            is_connected = getattr(_ws.sock, "connected", False)
     except:
         is_connected = False
 
@@ -43,7 +42,8 @@ def process_queue():
         while not _message_queue.empty():
             try:
                 data = _message_queue.get_nowait()
-                _ws.send(json.dumps(data))
+                msg = json.dumps(data)
+                _ws.send(msg)
                 _message_queue.task_done()
             except queue.Empty:
                 break
@@ -74,32 +74,35 @@ from . import preferences
 
 def ws_thread():
     global _ws
-    info(f"WS Thread trying to start...")
-    try:
-        # Get URL from preferences
-        prefs = preferences.get_preferences()
-        url = prefs.ws_url if prefs else "ws://127.0.0.1:32123"
-        
-        info(f"Target: {url}")
-        while _should_run.is_set():
-            try:
-                info("Attempting connection...")
-                _ws = websocket.WebSocketApp(url,
-                                            on_open=lambda ws: info("WS Connected (on_open)"),
-                                            on_message=lambda ws, msg: info(f"Recv: {msg}"),
-                                            on_error=lambda ws, err: info(f"WS Error: {err}"),
-                                            on_close=lambda ws, close_status, close_msg: info(f"WS Closed: {close_status} {close_msg}"))
-                _ws.run_forever(ping_interval=10, ping_timeout=5)
-            except Exception as e:
-                if _should_run.is_set():
-                    info(f"Loop error: {e}")
-
+    info(f"WS Thread start sequence...")
+    
+    while _should_run.is_set():
+        try:
+            # Get URL from preferences
+            prefs = preferences.get_preferences()
+            url = prefs.ws_url if prefs else "ws://127.0.0.1:32123"
+            
+            info(f"Attempting connection to {url}...")
+            
+            _ws = websocket.WebSocketApp(url,
+                                        on_open=lambda ws: info("WS Connected (on_open)"),
+                                        on_message=lambda ws, msg: info(f"Recv: {msg}"),
+                                        on_error=lambda ws, err: info(f"WS Error: {err}"),
+                                        on_close=lambda ws, status, msg: info(f"WS Closed: {status} {msg}"))
+            
+            # run_forever blokuje vlákno, dokud je spojení otevřené
+            _ws.run_forever(ping_interval=10, ping_timeout=5)
+            
+        except Exception as e:
             if _should_run.is_set():
-                info("Waiting 5s before reconnect...")
-                _should_run.wait(timeout=5)
-    except Exception as top_e:
-        info(f"CRITICAL WS Thread error: {top_e}")
-    info("WS Thread exiting")
+                info(f"Connection loop error: {e}")
+
+        # Pokud máme stále běžet, počkáme před dalším pokusem
+        if _should_run.is_set():
+            info("Connection lost. Waiting 5s before reconnect...")
+            _should_run.wait(timeout=5)
+            
+    info("WS Thread exiting (should_run is False)")
 
 def register():
     global _thread
