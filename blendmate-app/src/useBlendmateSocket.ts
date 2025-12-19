@@ -10,7 +10,7 @@ type Message = {
 export function useBlendmateSocket() {
   const socketRef = useRef<WebSocket | null>(null);
   const [status, setStatus] = useState<SocketStatus>("connecting");
-  const [lastMessage, setLastMessage] = useState<string | null>(null);
+  const [lastMessage, setLastMessage] = useState<Message | null>(null);
 
   useEffect(() => {
     const socket = new WebSocket("ws://127.0.0.1:32123");
@@ -30,8 +30,12 @@ export function useBlendmateSocket() {
     });
 
     socket.addEventListener("message", (event) => {
-      const data = typeof event.data === "string" ? event.data : "";
-      setLastMessage(data || "(binary message received)");
+      try {
+        const data = typeof event.data === "string" ? JSON.parse(event.data) : null;
+        setLastMessage(data);
+      } catch (e) {
+        console.error("Failed to parse message", e);
+      }
     });
 
     return () => {
