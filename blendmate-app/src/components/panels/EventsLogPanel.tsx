@@ -1,11 +1,13 @@
 import { PanelProps } from '../../types/panels';
 
+const MAX_DISPLAYED_EVENTS = 10;
+
 interface EventsLogPanelProps extends PanelProps {
   events: Array<{ type: string; timestamp: number; data: any }>;
 }
 
 export default function EventsLogPanel({ events }: EventsLogPanelProps) {
-  const recentEvents = events.slice(-10).reverse();
+  const recentEvents = events.slice(-MAX_DISPLAYED_EVENTS).reverse();
 
   return (
     <div className="space-y-4">

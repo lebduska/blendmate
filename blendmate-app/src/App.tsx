@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useBlendmateSocket } from "./useBlendmateSocket";
 import { usePanelManager } from "./usePanelManager";
+import { PanelState } from "./types/panels";
 import { PANEL_REGISTRY } from "./services/panelRegistry";
 import HUD from "./components/layout/HUD";
 import Footer from "./components/layout/Footer";
@@ -56,8 +57,8 @@ export default function App() {
         </div>
 
         {/* Render visible panels */}
-        {visiblePanels.map((panelState: { id: any; isVisible: any; isFocused: any }) => {
-          const panelDef = PANEL_REGISTRY[panelState.id as keyof typeof PANEL_REGISTRY];
+        {visiblePanels.map((panelState: PanelState) => {
+          const panelDef = PANEL_REGISTRY[panelState.id];
           const PanelComponent = panelDef.component;
           
           return (
