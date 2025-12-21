@@ -4,12 +4,27 @@ import NodeHelpView from "./components/NodeHelpView";
 import HUD from "./components/layout/HUD";
 import Footer from "./components/layout/Footer";
 import Card from "./components/ui/Card";
+import { saveLayout, restoreLayout, resetLayout } from "./services/layoutPersistence";
 
 export default function App() {
   const { status, lastMessage, sendJson } = useBlendmateSocket();
-  const [activeTab, setActiveTab] = useState<'nodes' | 'stats' | 'chat'>('nodes');
+  
+  // Restore layout from localStorage on mount
+  const [activeTab, setActiveTab] = useState<'nodes' | 'stats' | 'chat'>(() => {
+    const restored = restoreLayout();
+    return restored.activeTab;
+  });
+  
   const [frame, setFrame] = useState(1);
   const [currentNodeId, setCurrentNodeId] = useState('GeometryNodeInstanceOnPoints');
+
+  // Save layout to localStorage whenever it changes
+  useEffect(() => {
+    saveLayout({ 
+      layoutVersion: 1, // This is set by the service but we include it for type safety
+      activeTab 
+    });
+  }, [activeTab]);
 
   // React to incoming context messages from Blender
   useEffect(() => {
@@ -23,13 +38,20 @@ export default function App() {
     }
   }, [lastMessage]);
 
+  // Handle layout reset
+  const handleResetLayout = () => {
+    const defaultLayout = resetLayout();
+    setActiveTab(defaultLayout.activeTab);
+  };
+
   return (
     <main className="flex flex-col h-screen overflow-hidden bg-blendmate-dark text-white font-sans selection:bg-blendmate-blue/30">
       
       <HUD 
         status={status} 
         activeTab={activeTab} 
-        setActiveTab={setActiveTab} 
+        setActiveTab={setActiveTab}
+        onResetLayout={handleResetLayout}
       />
 
       {/* --- MAIN ADVENTURE AREA --- */}

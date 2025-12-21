@@ -1,4 +1,8 @@
-export default function NodeHelpView() {
+interface NodeHelpViewProps {
+  nodeId: string;
+}
+
+export default function NodeHelpView({ nodeId: _nodeId }: NodeHelpViewProps) {
   return (
     <div className="space-y-6">
       {/* Visual Title */}
