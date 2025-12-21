@@ -13,6 +13,11 @@ export interface WorkspaceLayout {
   // Future: panel visibility, positions, sizes, etc.
 }
 
+// Partial type for saving - layoutVersion is optional as it's set by the service
+export type WorkspaceLayoutInput = Omit<WorkspaceLayout, 'layoutVersion'> & {
+  layoutVersion?: number;
+};
+
 const DEFAULT_LAYOUT: WorkspaceLayout = {
   layoutVersion: CURRENT_LAYOUT_VERSION,
   activeTab: 'nodes',
@@ -21,7 +26,7 @@ const DEFAULT_LAYOUT: WorkspaceLayout = {
 /**
  * Save the current workspace layout to localStorage
  */
-export function saveLayout(layout: WorkspaceLayout): void {
+export function saveLayout(layout: WorkspaceLayoutInput): void {
   try {
     const layoutWithVersion = {
       ...layout,
@@ -54,7 +59,7 @@ export function restoreLayout(): WorkspaceLayout {
 
     // Validate activeTab is one of the allowed values
     const validTabs: Array<'nodes' | 'stats' | 'chat'> = ['nodes', 'stats', 'chat'];
-    if (validTabs.indexOf(parsed.activeTab) === -1) {
+    if (!validTabs.includes(parsed.activeTab)) {
       console.warn('Invalid activeTab value. Using default.');
       return DEFAULT_LAYOUT;
     }

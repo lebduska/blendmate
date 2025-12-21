@@ -20,10 +20,7 @@ export default function App() {
 
   // Save layout to localStorage whenever it changes
   useEffect(() => {
-    saveLayout({ 
-      layoutVersion: 1, // This is set by the service but we include it for type safety
-      activeTab 
-    });
+    saveLayout({ activeTab });
   }, [activeTab]);
 
   // React to incoming context messages from Blender
