@@ -11,8 +11,25 @@ class MockBpy:
                 self.frame_change_post = []
             def persistent(self, func):
                 return func
+        
+        class Timers:
+            def __init__(self):
+                self._registered = []
+            
+            def register(self, func, **kwargs):
+                if func not in self._registered:
+                    self._registered.append(func)
+            
+            def is_registered(self, func):
+                return func in self._registered
+            
+            def unregister(self, func):
+                if func in self._registered:
+                    self._registered.remove(func)
+        
         def __init__(self):
             self.handlers = self.Handlers()
+            self.timers = self.Timers()
 
     class Data:
         def __init__(self):
