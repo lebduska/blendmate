@@ -2,38 +2,79 @@
 
 Osobní parťák pro vibe práci s Blenderem.
 
-## 🚀 Úkoly a stav vývoje
+Blendmate je desktopová aplikace + Blender add-on, který posílá události z Blenderu přes WebSocket
+a v aplikaci je zobrazuje jako event konzoli a kontextovou nápovědu pro Geometry Nodes.
+
+---
+## Co tady najdeš
+
+- **Blender add-on** (`blendmate-addon/`) — běží uvnitř Blenderu, sleduje vybrané handlery a posílá normalizované eventy.
+- **Desktop app** (`blendmate-app/`) — Tauri + React + TypeScript, lokální WebSocket server + UI pro eventy a node help.
+- **Knowledge base** (`knowledge/`) — lokální znalostní báze pro Geometry Nodes a Blender 4.5 (metadata, markdown, preview obrázky).
+
+Podrobnější architektura a protokol: `docs/ARCHITECTURE.md`, `docs/PROTOCOL_EVENTS.md`.
+
+---
+## Úkoly a stav vývoje
+
 Tento projekt používá **GitHub Issues** jako jediný zdroj pravdy pro plánování a sledování úkolů.
+
 - [Seznam otevřených úkolů](https://github.com/lebduska/blendmate/issues)
-- [Aktuální priority (P0)](https://github.com/lebduska/blendmate/issues?q=is%3Aopen+is%3Aissue+label%3Aprio%3Ap0)
+- [Aktuální priority (label `prio:p0`)](https://github.com/lebduska/blendmate/issues?q=is%3Aopen+is%3Aissue+label%3Aprio%3Ap0)
 
-## 🤖 Pro AI Agenty
-Pokud jsi AI agent, nejdříve si přečti [AGENTS.md](./AGENTS.md), kde najdeš pravidla pro práci v tomto repozitáři.
+Aktuální směr a shrnutí projektu najdeš v [`CONTEXT.md`](./CONTEXT.md).
 
-## 🔌 Blender Add-on
-Pro propojení s Blenderem je potřeba nainstalovat náš add-on. Více informací najdeš v [blendmate-addon/README.md](./blendmate-addon/README.md).
+---
+## Rychlý start (desktop app)
 
-## Ruční testování (Blender add-on WS události)
+```bash
+# 1) Nainstaluj závislosti (jednorázově)
+cd blendmate-app && npm install
 
-1. **Spusť Blendmate aplikaci** (WebSocket server):
+# 2) Spusť vývojovou verzi desktop app (Tauri + React)
+npm run tauri dev
+```
+
+Tím se spustí lokální WebSocket server na `ws://127.0.0.1:32123` a otevře se Blendmate UI.
+
+---
+## Blender Add-on
+
+Pro propojení s Blenderem je potřeba nainstalovat add-on z tohoto repozitáře.
+
+Základní kroky:
+
+1. Otevři Blender.
+2. `Edit` → `Preferences` → `Add-ons`.
+3. Klikni na `Install...`.
+4. Vyber adresář `blendmate-addon/` (nebo soubor `blendmate-addon/__init__.py`, podle verze Blenderu).
+5. Zaškrtni checkbox u **System: Blendmate Connector**.
+
+Více informací najdeš v [`blendmate-addon/README.md`](./blendmate-addon/README.md).
+
+---
+## Ruční end‑to‑end test (Blender ↔ desktop app)
+
+1. **Spusť Blendmate desktop app** (WebSocket server):
    ```bash
    cd blendmate-app && npm run tauri dev
    ```
 
-2. **Nainstaluj addon v Blenderu**:
-   - Otevři Blender
-   - `Edit` → `Preferences` → `Add-ons`
-   - Klikni `Install...`
-   - Vyber adresář `addon/` z tohoto repozitáře
-   - Zaškrtni checkbox u "Blendmate" v seznamu addonů
+2. **Nainstaluj a aktivuj add-on v Blenderu** (viz sekce výše).
 
-3. **Ověř funkčnost**:
+3. **Ověř funkčnost tak, že v Blenderu vyvoláš různé akce:**
    - Ulož `.blend` soubor → event `save_post`
-   - Nahraj soubor → event `load_post`
+   - Nahraj `.blend` soubor → event `load_post`
    - Posuň frame → event `frame_change_post`
    - Spusť render → event `render_complete`
-   - Změň scénu → throttlovaný `depsgraph_update_post` (cca 2–5x/s)
+   - Změň scénu / pohni objektem → throttlovaný `depsgraph_update_post` (cca 2–5×/s)
 
-4. **Zkontroluj události**:
-   - V UI Blendmate (poslední zpráva)
-   - V konzoli, kam app loguje přijaté WS payloady
+4. **Zkontroluj přijaté události:**
+   - v UI Blendmate (panel s poslední zprávou),
+   - v konzoli, kam app loguje přijaté WebSocket payloady.
+
+---
+## Pro AI agenty
+
+Pokud jsi AI agent (Cursor, Codex, jiné LLM), nejdříve si přečti [`AGENTS.md`](./AGENTS.md),
+kde jsou pravidla pro práci v tomto repozitáři a očekávaný workflow.

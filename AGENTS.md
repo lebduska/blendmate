@@ -1,128 +1,102 @@
 # AGENTS.md
 
-Project: blendmate
-Personal companion app for Blender.
+Project: **blendmate** — personal companion app for Blender.
 
-MVP:
-Active GN node in Blender -> WebSocket -> app shows node help.
+MVP: *Active GN node in Blender → WebSocket → app shows node help from local knowledge base.*
 
----
-## Core Principles
-
-- This repository is AI-assisted.
-- Agents (Cursor / Codex) are expected to read this file first.
-- Prefer deterministic, cacheable outputs over narrative explanations.
+Treat this file as an **agent contract**: stručná sada pravidel pro AI agenty (Cursor / Codex / jiné LLM),
+aby byly běhy opakovatelné, auditovatelné a zarovnané s cíli projektu.
 
 ---
-## Execution Model (CLI-first)
+## 1. Workflow rules (issues, větve, dokumentace)
 
-- This project is operated primarily via local CLI agent runs.
-- Agents are expected to run in a real TTY environment.
-- Determinism, reproducibility, and auditability are required for non-trivial tasks.
-- Web-based agent runs are acceptable only for small, low-risk changes.
-
-Note:
-- This section describes the *environmental assumptions* under which agents operate.
-- It is not an instruction for humans to manually follow steps unless explicitly stated.
-
----
-## Workflow Rules
-
-- **Jediný zdroj pravdy (SSOT):** GitHub Issues. Vždy si nejdříve načti detaily úkolu přes `gh issue view <N>`.
-- **1 Issue = 1 PR:** Každý úkol musí mít svou vlastní větev a vlastní Pull Request.
-- **Větve (Branches):** Používej formát `{id}-{summary}` (např. `23-ui-layout`).
-- **Propojení:** V popisu PR vždy uveď `Fixes #<id>`, aby se issue po mergi automaticky uzavřelo.
-- **Komentování:** Po dokončení práce přidej k issue stručný komentář o tom, co bylo uděláno, a odkaz na PR.
-- **Clean Desk:** Před ukončením session musí být všechny změny buď commitnuty do příslušné větve, nebo zahozeny. Žádný lokální nepořádek.
-- **Bez dokumentace není hotovo:** Pokud měníš chování, aktualizuj `CONTEXT.md`.
+- **Single source of truth (SSOT):** GitHub Issues v repu `lebduska/blendmate`.
+- **1 Issue = 1 PR:** Každý úkol má vlastní větev i Pull Request.
+- **Větve:** `{id}-{summary}` (např. `23-ui-layout`).
+- **Propojení:** V popisu PR vždy uveď `Fixes #<id>`.
+- **Komentář do issue:** Po dokončení práce přidej krátký komentář, co se změnilo + odkaz na PR.
+- **Clean desk:** Před koncem session nesmí zůstat neuklizený working tree (buď commit, nebo zahodit).
+- **Bez dokumentace není hotovo:** Změníš-li chování, aktualizuj `CONTEXT.md` (a případně další související soubory).
 
 ---
-## Issue & Task Discovery
+## 2. Execution model (CLI‑first)
 
-- Default execution context is a local CLI agent run with access to git and GitHub CLI.
-- Active tasks are tracked in GitHub Issues.
-- GitHub Issues are the single source of truth for task requirements.
-- When an issue number is referenced (e.g. "issue #12"), the agent MUST fetch the issue before starting any work.
+- Projekt se typicky ovládá přes **lokální CLI běhy agentů** v reálném TTY.
+- Důraz na **determinismus, reprodukovatelnost a auditovatelnost** u všech netriviálních úkolů.
+- Webové běhy (např. v prohlížeči) jsou v pořádku pro malé, nízkorizikové změny.
 
-Required procedure:
-1. Fetch the issue via GitHub CLI:
-   `gh issue view <N> --repo lebduska/blendmate --json title,body,url,labels`
-2. Treat the fetched issue body as authoritative instructions.
-3. Do not infer, extend, or invent requirements beyond the issue text.
-4. If requirements are missing or ambiguous, ask for clarification by commenting on the issue and STOP.
-
-- Do not search for issue numbers in the repository filesystem.
-- Do not proceed based on assumptions if the issue content is not available.
+(Platí pro prostředí agentů, není to návod pro ruční práci lidí.)
 
 ---
-## Knowledge Extraction & Caching
+## 3. Issue & task discovery
 
-- Extraction tasks must produce machine-readable artifacts.
-- Extracted knowledge must be stored under:
+- Aktivní práce se vždy váže ke konkrétnímu issue.
+- Před jakoukoli prací nad issue číslo `N` agent **MUSÍ** načíst detaily:
 
-  knowledge/<source>-<version>/
+  ```bash
+  gh issue view <N> --repo lebduska/blendmate --json title,body,url,labels
+  ```
 
-  Example:
-  knowledge/blender-4.5/handlers.json
-
-- The `knowledge/` directory is versioned and committed to git.
-- Do not regenerate knowledge artifacts unless explicitly instructed.
-
----
-## Sources of Truth
-
-- Prefer official documentation as the primary source of truth.
-- Source code is used only to clarify undocumented or ambiguous behavior.
-- Do not invent APIs, handlers, or events that are not explicitly exposed.
+- Text issue (včetně checklistů) je **autoritativní zadání**.
+- Agent nesmí domýšlet nebo vymýšlet nové požadavky mimo issue.
+- Pokud jsou požadavky nejasné nebo chybí, agent se má zastavit a vyžádat si upřesnění komentářem v issue.
+- Agent **nesmí** hádat obsah issue ani hledat čísla issue v souborech repozitáře.
 
 ---
-## Output Expectations
+## 4. Knowledge extraction & protocol layer
 
-- Outputs must be deterministic and reviewable.
-- Prefer JSON, Markdown, or other structured formats.
-- Validate generated JSON before committing.
+- Extrakční úkoly musí produkovat **strojově čitelné artefakty**.
+- Všechny znalostní artefakty patří pod:
 
----
-## Logging & Run Records
+  - `knowledge/<source>-<version>/`  
+    např. `knowledge/blender-4.5/handlers.json`
 
-Goal: enable post-hoc analysis of prompt quality, agent behavior (Cursor vs Codex), and throughput.
+- `knowledge/` je verzovaný adresář, změny se commitují do gitu.
+- **Neregeneruj** existující knowledge artefakty, pokud to není výslovně požadováno v issue.
 
-- Agents do NOT need to know how they are launched (e.g. via `ops/codexrun.sh`); wrappers exist to enforce logging and environment guarantees for humans and automation.
+### Sources of truth
 
-- For any non-trivial task (protocol/knowledge/extraction/addon/app), runs SHOULD be logged.
-- Preferred format: one run = one Markdown log file under `logs/`.
-- Logs are append-only artifacts and may be committed, or attached to PRs, depending on sensitivity.
-
-Minimum contents per run log:
-- Timestamp start/end + duration
-- Agent type (cursor/codex/other) + command used
-- Git context (repo, branch, HEAD commit)
-- Issue reference (URL + `gh issue view <N>` output snippet)
-- Prompt / instruction used (exact text)
-- Key terminal transcript (commands + output)
-- Result summary (files touched) + diff link or patch (optional)
-
-Recommended filename:
-- `logs/YYYY-MM-DD-HHMMSS-issue<N>-<agent>-<label>.md`
-
-Implementation note:
-- This is achieved via a local wrapper (e.g., `script` or `tee`) that captures stdout/stderr.
-- Do NOT re-generate long transcripts via the model (wastes tokens). Capture them at the shell level.
-
-Database vs files:
-- Start with file logs (Markdown/JSON) for simplicity.
-- If you need cross-run analytics later, add a small SQLite index (run_id, issue, agent, start/end, duration, outcome) that points to the log file path.
+- Preferuj oficiální dokumentaci (Blender, API docs) jako primární zdroj pravdy.
+- Zdrojový kód používej pro upřesnění chování nebo doplnění detailů.
+- Nevymýšlej nové API, handlery nebo eventy, které nejsou explicitně zdokumentované.
 
 ---
-## Agent Behavior Guidelines
+## 5. Output & logging
 
-- Treat this document as an agent contract: it defines constraints and expectations, not user-facing instructions.
-- Do not attempt to crawl large external repositories unless explicitly instructed.
-- If required information is missing, stop and request clarification.
-- Avoid "best guess" implementations when dealing with protocols or APIs.
+### Output
+
+- Výstupy mají být **deterministické a snadno reviewovatelné**.
+- Preferované formáty: JSON, Markdown nebo jiná strukturovaná podoba.
+- JSON musí být validní a parsovatelný před commitem.
+
+### Run logs
+
+Cíl: umožnit zpětnou analýzu běhů (prompty, chování agentů, throughput).
+
+- Pro netriviální úkoly (protokol, knowledge, addon, app) se doporučuje logovat běhy do `logs/`.
+- Formát: „1 běh = 1 Markdown log“.
+- Logy jsou append‑only a lze je commitnout nebo přiložit k PR dle potřeby.
+
+Minimální obsah logu:
+- čas start/end + trvání,
+- typ agenta (cursor/codex/jiný) + použitý příkaz,
+- Git kontext (repo, větev, HEAD commit),
+- reference na issue (URL + krátký výstřižek `gh issue view <N>`),
+- použitý prompt / instrukce,
+- klíčové příkazy a jejich výstupy,
+- stručné shrnutí výsledku (které soubory se změnily, odkaz na diff/PR).
 
 ---
-## Goal
+## 6. Agent behavior guidelines
 
-Blendmate aims to build a reusable knowledge and protocol layer on top of Blender,
-enabling contextual help, AI reasoning, and UI assistance without duplicating Blender internals.
+- Tato smlouva je pro agenty; není to user‑facing dokumentace.
+- Necrawlovať velké externí repozitáře bez explicitního zadání.
+- Když chybí klíčové informace, **zastav se a ptej se**, nehádej.
+- U protokolů a API se vyhýbej „best guess“ implementacím – raději konzervativní chování.
+
+---
+## 7. Cíl projektu
+
+Blendmate buduje znovupoužitelnou **knowledge + protocol vrstvu nad Blenderem**,
+aby umožnil kontextovou nápovědu, AI reasoning a UI asistenci
+bez duplikování interní logiky Blenderu.
