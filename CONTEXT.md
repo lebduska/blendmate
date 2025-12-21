@@ -15,6 +15,7 @@ pro Geometry Nodes nad lokální knowledge base.
 
 - **Blender WebSocket add‑on** existuje a posílá vybrané handler eventy do lokálního serveru.
 - **Tauri/React desktop app** se umí připojit k WS serveru a zobrazit stav připojení + poslední zprávu.
+- **UI layout persistence** — aplikace si ukládá stav workspace (aktivní tab) do localStorage a automaticky jej obnovuje při startu. Uživatel může layout resetovat tlačítkem "Reset" v HUD.
 - **Knowledge layer pro Blender 4.5** je rozpracovaná (`knowledge/blender-4.5/...`).
 - **Workflow & dokumentace**: existují základní soubory (`WORKFLOW.md`, `AGENTS.md`, `CONTEXT.md`) a GitHub issue štítky/prioritizace.
 - **CI/CD a releasy**: zatím nejsou, buildy se dělají lokálně.
@@ -79,5 +80,6 @@ Při práci vždy preferuj konkrétní otevřená issue před „obecným pocite
 
 - WebSocket server (desktop app): `ws://127.0.0.1:32123`
 - React dev UI: zobrazované uvnitř Tauri okna
+- **Layout persistence:** localStorage klíč `blendmate_layout` se schématem verzovaným (`layoutVersion: 1`)
 
 Pokud změníš tyto hodnoty nebo chování připojení, **aktualizuj tento soubor**.
