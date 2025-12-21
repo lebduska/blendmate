@@ -18,7 +18,7 @@ pro Geometry Nodes nad lokální knowledge base.
 - **Panel-based UI**: Aplikace používá flexibilní panelový systém místo pevných tabů (viz `blendmate-app/PANELS.md`).
 - **Layout persistence (design)** — workspace layout má připravený návrh ukládání do `localStorage` (klíč `blendmate_layout`, verzované schéma `layoutVersion: 1`). Implementace se bude řídit panelem systémem.
 - **Knowledge layer pro Blender 4.5** je rozpracovaná (`knowledge/blender-4.5/...`).
-- **Workflow & dokumentace**: existují základní soubory (`WORKFLOW.md`, `AGENTS.md`, `CONTEXT.md`) a GitHub issue štítky/prioritizace.
+- **Workflow & dokumentace**: existují základní soubory (`WORKFLOW.md`, `AGENTS.md`, `CONTEXT.md`) a GitHub issue štítky/prioritizace. UI chování je definováno v `blendmate-app/docs/UI_RULES.md`.
 - **CI/CD a releasy**: zatím nejsou, buildy se dělají lokálně.
 
 Pro detailní architekturu viz `docs/ARCHITECTURE.md` a `docs/PROTOCOL_EVENTS.md`.

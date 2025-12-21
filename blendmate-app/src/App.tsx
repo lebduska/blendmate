@@ -16,6 +16,7 @@ export default function App() {
   const [events, setEvents] = useState<LoggedEvent[]>([]);
 
   // React to incoming context messages from Blender
+  // Rule 1 (UI_RULES.md): No auto-opening panels on events
   useEffect(() => {
     if (lastMessage) {
       // Add to events log with size limit to prevent memory issues
@@ -31,7 +32,7 @@ export default function App() {
 
       if (lastMessage.type === 'context' && lastMessage.node_id) {
         setCurrentNodeId(lastMessage.node_id as string);
-        togglePanel('nodes-help');
+        // Quiet companion rule: do not auto-open or focus panels on context changes
       } else if (lastMessage.type === 'event' && lastMessage.event === 'frame_change') {
         setFrame(lastMessage.frame as number);
       }
