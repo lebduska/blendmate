@@ -1,15 +1,20 @@
+import { PanelId, PanelState } from '../../types/panels';
+import { PANEL_REGISTRY } from '../../services/panelRegistry';
+
 interface HUDProps {
   status: string;
-  activeTab: 'nodes' | 'stats' | 'chat';
-  setActiveTab: (tab: 'nodes' | 'stats' | 'chat') => void;
-  onResetLayout: () => void;
+  panelStates: PanelState[];
+  onPanelToggle: (panelId: PanelId) => void;
 }
 
-export default function HUD({ status, activeTab, setActiveTab, onResetLayout }: HUDProps) {
+export default function HUD({ status, panelStates, onPanelToggle }: HUDProps) {
+  // Derive panel order from registry keys to maintain consistency
+  const panelOrder = Object.keys(PANEL_REGISTRY) as PanelId[];
+
   return (
     <nav 
       data-tauri-drag-region
-      className="flex items-center justify-between gap-4 px-6 py-4 border-b border-white/5 bg-blendmate-gray/20 backdrop-blur-xl cursor-default"
+      className="flex items-center justify-between px-6 py-4 border-b border-white/5 bg-blendmate-gray/20 backdrop-blur-xl cursor-default"
     >
       <div data-tauri-drag-region className="flex items-center gap-4 select-none">
         <div className="relative">
@@ -21,27 +26,33 @@ export default function HUD({ status, activeTab, setActiveTab, onResetLayout }: 
         </h1>
       </div>
 
+      {/* Panel launcher / focus switcher */}
       <div className="flex bg-black/40 p-1 rounded-full border border-white/5">
-        {(['nodes', 'stats', 'chat'] as const).map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            className={`px-4 py-1.5 rounded-full text-[10px] font-bold uppercase transition-all ${
-              activeTab === tab ? 'bg-blendmate-blue text-black' : 'text-white/40 hover:text-white'
-            }`}
-          >
-            {tab}
-          </button>
-        ))}
-      </div>
+        {panelOrder.map((panelId) => {
+          const panel = PANEL_REGISTRY[panelId];
+          const state = panelStates.find((p) => p.id === panelId);
+          const isVisible = state?.isVisible ?? false;
+          const isFocused = state?.isFocused ?? false;
 
-      <button
-        onClick={onResetLayout}
-        title="Reset layout to defaults"
-        className="px-3 py-1.5 rounded-full text-[10px] font-bold uppercase bg-white/5 text-white/40 hover:bg-white/10 hover:text-white border border-white/5 transition-all"
-      >
-        Reset
-      </button>
+          return (
+            <button
+              key={panelId}
+              onClick={() => onPanelToggle(panelId)}
+              className={`px-4 py-1.5 rounded-full text-[10px] font-bold uppercase transition-all ${
+                isFocused && isVisible
+                  ? 'bg-blendmate-blue text-black'
+                  : isVisible
+                  ? 'bg-white/10 text-white'
+                  : 'text-white/40 hover:text-white'
+              }`}
+              title={panel.title}
+            >
+              <span className="mr-1">{panel.icon}</span>
+              {panel.title.split(' ')[0]}
+            </button>
+          );
+        })}
+      </div>
     </nav>
   );
 }

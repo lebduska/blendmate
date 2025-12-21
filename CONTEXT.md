@@ -14,13 +14,15 @@ pro Geometry Nodes nad lokální knowledge base.
 ## Current state (high‑level)
 
 - **Blender WebSocket add‑on** existuje a posílá vybrané handler eventy do lokálního serveru.
-- **Tauri/React desktop app** se umí připojit k WS serveru a zobrazit stav připojení + poslední zprávu.
-- **UI layout persistence** — aplikace si ukládá stav workspace (aktivní tab) do localStorage a automaticky jej obnovuje při startu. Uživatel může layout resetovat tlačítkem "Reset" v HUD.
+- **Tauri/React desktop app** má minimální shell (header + workspace + footer) a umí se připojit k WS serveru a zobrazit stav připojení.
+- **Panel-based UI**: Aplikace používá flexibilní panelový systém místo pevných tabů (viz `blendmate-app/PANELS.md`).
+- **Layout persistence (design)** — workspace layout má připravený návrh ukládání do `localStorage` (klíč `blendmate_layout`, verzované schéma `layoutVersion: 1`). Implementace se bude řídit panelem systémem.
 - **Knowledge layer pro Blender 4.5** je rozpracovaná (`knowledge/blender-4.5/...`).
 - **Workflow & dokumentace**: existují základní soubory (`WORKFLOW.md`, `AGENTS.md`, `CONTEXT.md`) a GitHub issue štítky/prioritizace.
 - **CI/CD a releasy**: zatím nejsou, buildy se dělají lokálně.
 
 Pro detailní architekturu viz `docs/ARCHITECTURE.md` a `docs/PROTOCOL_EVENTS.md`.
+Pro panel systém viz `blendmate-app/PANELS.md`.
 
 ---
 ## How to run (desktop app + addon)
