@@ -5,6 +5,7 @@ Blendmate is a context-aware assistant for Blender workflows that listens to Ble
 
 ## Current state (as of now)
 - WebSocket addon for Blender implemented; sends Blender handler events.
+- **msgbus subscriptions** implemented for targeted change detection (active object, transforms, frame changes) to reduce depsgraph spam.
 - Tauri/React app scaffold present; connects to WS and shows basic status/last message (#2, #3).
 - Protocol and knowledge extraction for Blender 4.5 started (#11, #13, #18).
 - Workflow and docs scaffolding present (`WORKFLOW.md`, `AGENTS.md`, task labels & priorities).
