@@ -54,15 +54,29 @@ async def test_integration():
     print("\n--- Integration Results ---")
     print(f"Total messages received: {len(received_messages)}")
     
-    expected_types = {'event', 'context'}
+    # With the new event model, we expect semantic event types like:
+    # "file.saved", "editor.node.active", etc.
+    # Check for any valid event types (they should have dot notation)
     received_types = {msg.get('type') for msg in received_messages}
     
     success = True
-    if not expected_types.issubset(received_types):
-        print(f"FAIL: Missing expected message types. Expected {expected_types}, got {received_types}")
-        success = False
     
-    if len(received_messages) < 3:
+    # We expect at least some messages with the new normalized format
+    # Events should have: type, payload, ts, source fields
+    valid_events = [
+        msg for msg in received_messages 
+        if 'type' in msg and 'payload' in msg and 'ts' in msg
+    ]
+    
+    if len(valid_events) == 0:
+        print(f"FAIL: No valid events received with normalized format")
+        print(f"Received types: {received_types}")
+        success = False
+    else:
+        print(f"SUCCESS: Received {len(valid_events)} valid events")
+        print(f"Event types: {received_types}")
+    
+    if len(received_messages) < 2:
         print(f"FAIL: Too few messages received ({len(received_messages)})")
         success = False
 

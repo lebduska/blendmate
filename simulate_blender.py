@@ -21,6 +21,11 @@ class MockBpy:
     class Data:
         def __init__(self):
             self.filepath = "mock_scene.blend"
+    
+    class Scene:
+        def __init__(self):
+            self.name = "Scene"
+            self.frame_current = 1
             
     class Context:
         class Screen:
@@ -62,8 +67,9 @@ import bpy
 sys.path.append(os.path.dirname(__file__))
 sys.path.append(os.path.join(os.path.dirname(__file__), 'blendmate-addon'))
 
-# Import the module we want to test
+# Import the modules we want to test
 import connection
+import handlers
 
 # Overwrite port for testing if needed
 if len(sys.argv) > 1:
@@ -81,19 +87,23 @@ if len(sys.argv) > 1:
 def run_simulation():
     print("Starting Blender Addon Simulation...")
     connection.register()
+    handlers.register()
+    
+    # Create a mock scene object
+    mock_scene = bpy.Scene()
     
     try:
         time.sleep(2) # Give it time to connect
         
         print("\n--- Simulating Save ---")
         for handler in bpy.app.handlers.save_post:
-            handler(None)
+            handler(mock_scene)
         
         time.sleep(1)
         
         print("\n--- Simulating Depsgraph Update (Node Context) ---")
         for handler in bpy.app.handlers.depsgraph_update_post:
-            handler(None, None)
+            handler(mock_scene, None)
             
         time.sleep(1)
         
@@ -101,12 +111,13 @@ def run_simulation():
         # Change active node in mock
         bpy.context.screen.areas[0].spaces.active.node_tree.nodes.active.bl_idname = 'GeometryNodeCombineXYZ'
         for handler in bpy.app.handlers.depsgraph_update_post:
-            handler(None, None)
+            handler(mock_scene, None)
 
         time.sleep(5)
         
     finally:
         print("\nUnregistering...")
+        handlers.unregister()
         connection.unregister()
 
 if __name__ == "__main__":
