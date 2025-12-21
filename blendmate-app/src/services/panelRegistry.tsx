@@ -8,6 +8,7 @@ import { PanelDefinition, PanelId, PanelProps } from '../types/panels';
 import NodesHelpPanel from '../components/panels/NodesHelpPanel';
 import EventsLogPanel from '../components/panels/EventsLogPanel';
 import ChatPanel from '../components/panels/ChatPanel';
+import StatsPanel from '../components/panels/StatsPanel';
 
 export const PANEL_REGISTRY: Record<PanelId, PanelDefinition> = {
   'nodes-help': {
@@ -39,11 +40,7 @@ export const PANEL_REGISTRY: Record<PanelId, PanelDefinition> = {
     title: 'Stats',
     icon: '📊',
     defaultPlacement: 'main',
-    component: (() => (
-      <div className="bg-white/5 rounded-2xl p-8 text-center italic opacity-30">
-        Stats panel coming soon...
-      </div>
-    )) as ComponentType<PanelProps>,
+    component: StatsPanel as ComponentType<PanelProps>,
     defaultVisible: false,
   },
 };
@@ -52,10 +49,11 @@ export const PANEL_REGISTRY: Record<PanelId, PanelDefinition> = {
  * Get initial panel states from registry
  */
 export function getInitialPanelStates() {
-  return Object.values(PANEL_REGISTRY).map((panel) => ({
+  return Object.values(PANEL_REGISTRY).map((panel, index) => ({
     id: panel.id,
     isVisible: panel.defaultVisible ?? false,
-    isFocused: panel.id === 'nodes-help', // First visible panel is focused by default
+    // First visible panel is focused by default
+    isFocused: (panel.defaultVisible ?? false) && index === 0,
     placement: panel.defaultPlacement,
   }));
 }

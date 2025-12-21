@@ -17,12 +17,16 @@ export default function App() {
   // React to incoming context messages from Blender
   useEffect(() => {
     if (lastMessage) {
-      // Add to events log
-      setEvents((prev: Array<{ type: string; timestamp: number; data: any }>) => [...prev, { 
-        type: lastMessage.type as string, 
-        timestamp: Date.now(), 
-        data: lastMessage 
-      }]);
+      // Add to events log with size limit to prevent memory issues
+      setEvents((prev: Array<{ type: string; timestamp: number; data: any }>) => {
+        const newEvents = [...prev, { 
+          type: lastMessage.type as string, 
+          timestamp: Date.now(), 
+          data: lastMessage 
+        }];
+        // Keep only last 100 events
+        return newEvents.slice(-100);
+      });
 
       if (lastMessage.type === 'context' && lastMessage.node_id) {
         setCurrentNodeId(lastMessage.node_id as string);
