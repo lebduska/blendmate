@@ -26,10 +26,9 @@ class TestThrottle(unittest.TestCase):
         throttle._flush_timer_registered = False
         throttle._throttle_interval = 0.1
         
-        # Mock connection.send_to_blendmate
+        # Mock the send function
         self.mock_send = MagicMock()
-        throttle.connection = MagicMock()
-        throttle.connection.send_to_blendmate = self.mock_send
+        throttle._send_function = self.mock_send
 
     def tearDown(self):
         """Clean up after each test."""

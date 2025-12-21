@@ -15,6 +15,7 @@ _pending_events: Dict[str, Dict[str, Any]] = {}
 _dirty_reasons: Dict[str, Set[str]] = {}
 _flush_timer_registered = False
 _throttle_interval = 0.1  # Default 100ms
+_send_function = None  # Will be set during registration
 
 def info(msg):
     print(f"[Blendmate:Throttle] {msg}")
@@ -102,10 +103,9 @@ def _flush_pending_events() -> Optional[float]:
                 del _dirty_reasons[event_type]
     
     # Send all ready events
-    if events_to_send:
-        from . import connection
+    if events_to_send and _send_function:
         for event_data in events_to_send:
-            connection.send_to_blendmate(event_data)
+            _send_function(event_data)
     
     # Continue timer if there are still pending events
     if _pending_events:
@@ -121,7 +121,8 @@ def flush_immediate():
     if not _pending_events:
         return
     
-    from . import connection
+    if not _send_function:
+        return
     
     for event_type, event_info in _pending_events.items():
         event_data = event_info["data"].copy()
@@ -130,7 +131,7 @@ def flush_immediate():
         if event_type in _dirty_reasons and _dirty_reasons[event_type]:
             event_data["reasons"] = list(_dirty_reasons[event_type])
         
-        connection.send_to_blendmate(event_data)
+        _send_function(event_data)
     
     # Clear all pending
     _pending_events.clear()
@@ -138,12 +139,20 @@ def flush_immediate():
 
 def register():
     """Register the throttle system."""
-    global _pending_events, _dirty_reasons, _flush_timer_registered
+    global _pending_events, _dirty_reasons, _flush_timer_registered, _send_function
     
     info("Registering throttle system")
     _pending_events.clear()
     _dirty_reasons.clear()
     _flush_timer_registered = False
+    
+    # Set up the send function
+    try:
+        from . import connection
+        _send_function = connection.send_to_blendmate
+    except ImportError:
+        # For testing, _send_function can be set externally
+        pass
 
 def unregister():
     """Unregister the throttle system and flush any pending events."""
