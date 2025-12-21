@@ -1,4 +1,43 @@
 @import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+@theme {
+  --color-blendmate-dark: #0a0a0a;
+  --color-blendmate-gray: #1a1a1a;
+  --color-blendmate-orange: #ff9d5c;
+  --color-blendmate-blue: #3d94ff;
+}
+
+/* System color variables for Island panels - light/dark mode support */
+:root {
+  /* Light mode (default system colors) */
+  --island-bg: rgb(255 255 255);
+  --island-bg-secondary: rgb(249 249 249);
+  --island-border: rgb(229 229 229);
+  --island-text: rgb(23 23 23);
+  --island-text-secondary: rgb(115 115 115);
+  --island-shadow: rgba(0 0 0 / 0.08);
+  --island-hover: rgb(245 245 245);
+  
+  background-color: rgb(250 250 250);
+  color: var(--island-text);
+}
+
+/* Dark mode system colors */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --island-bg: rgb(30 30 30);
+    --island-bg-secondary: rgb(23 23 23);
+    --island-border: rgb(64 64 64);
+    --island-text: rgb(250 250 250);
+    --island-text-secondary: rgb(163 163 163);
+    --island-shadow: rgba(0 0 0 / 0.3);
+    --island-hover: rgb(40 40 40);
+    
+    background-color: rgb(17 17 17);
+    color: var(--island-text);
+  }
+}
 
 * {
   box-sizing: border-box;
@@ -6,6 +45,7 @@
 
 body {
   margin: 0;
+  background-color: inherit;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;
