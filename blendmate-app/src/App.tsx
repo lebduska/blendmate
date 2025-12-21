@@ -4,10 +4,11 @@ import NodeHelpView from "./components/NodeHelpView";
 import HUD from "./components/layout/HUD";
 import Footer from "./components/layout/Footer";
 import Card from "./components/ui/Card";
+import IslandPanelDemo from "./components/IslandPanelDemo";
 
 export default function App() {
   const { status, lastMessage, sendJson } = useBlendmateSocket();
-  const [activeTab, setActiveTab] = useState<'nodes' | 'stats' | 'chat'>('nodes');
+  const [activeTab, setActiveTab] = useState<'nodes' | 'stats' | 'chat' | 'demo'>('demo');
   const [frame, setFrame] = useState(1);
   const [currentNodeId, setCurrentNodeId] = useState('GeometryNodeInstanceOnPoints');
 
@@ -60,11 +61,14 @@ export default function App() {
             <section className="relative group">
               <div className="absolute -inset-0.5 bg-gradient-to-r from-blendmate-blue to-blendmate-orange opacity-20 blur group-hover:opacity-40 transition duration-1000"></div>
               <div className="relative bg-blendmate-gray rounded-3xl p-6 border border-white/10 shadow-2xl">
-                <NodeHelpView nodeId={currentNodeId} />
+                <NodeHelpView />
               </div>
             </section>
           </div>
         )}
+
+        {/* Island Panel Demo */}
+        {activeTab === 'demo' && <IslandPanelDemo />}
 
         {/* Other Tabs content placeholders... */}
         {activeTab === 'chat' && (

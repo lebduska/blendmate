@@ -1,7 +1,7 @@
 interface HUDProps {
   status: string;
-  activeTab: 'nodes' | 'stats' | 'chat';
-  setActiveTab: (tab: 'nodes' | 'stats' | 'chat') => void;
+  activeTab: 'nodes' | 'stats' | 'chat' | 'demo';
+  setActiveTab: (tab: 'nodes' | 'stats' | 'chat' | 'demo') => void;
 }
 
 export default function HUD({ status, activeTab, setActiveTab }: HUDProps) {
@@ -21,7 +21,7 @@ export default function HUD({ status, activeTab, setActiveTab }: HUDProps) {
       </div>
 
       <div className="flex bg-black/40 p-1 rounded-full border border-white/5">
-        {(['nodes', 'stats', 'chat'] as const).map((tab) => (
+        {(['demo', 'nodes', 'stats', 'chat'] as const).map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
