@@ -2,8 +2,14 @@ import { PanelProps } from '../../types/panels';
 
 const MAX_DISPLAYED_EVENTS = 10;
 
+interface LoggedEvent {
+  type: string;
+  timestamp: number;
+  data: unknown;
+}
+
 interface EventsLogPanelProps extends PanelProps {
-  events: Array<{ type: string; timestamp: number; data: any }>;
+  events: LoggedEvent[];
 }
 
 export default function EventsLogPanel({ events }: EventsLogPanelProps) {

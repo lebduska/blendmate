@@ -7,19 +7,26 @@ import HUD from "./components/layout/HUD";
 import Footer from "./components/layout/Footer";
 import Card from "./components/ui/Card";
 
+// Type for logged events
+interface LoggedEvent {
+  type: string;
+  timestamp: number;
+  data: unknown;
+}
+
 export default function App() {
   const { status, lastMessage, sendJson } = useBlendmateSocket();
   const { panelStates, togglePanel, visiblePanels } = usePanelManager();
   
   const [frame, setFrame] = useState(1);
   const [currentNodeId, setCurrentNodeId] = useState('GeometryNodeInstanceOnPoints');
-  const [events, setEvents] = useState<Array<{ type: string; timestamp: number; data: any }>>([]);
+  const [events, setEvents] = useState<LoggedEvent[]>([]);
 
   // React to incoming context messages from Blender
   useEffect(() => {
     if (lastMessage) {
       // Add to events log with size limit to prevent memory issues
-      setEvents((prev: Array<{ type: string; timestamp: number; data: any }>) => {
+      setEvents((prev: LoggedEvent[]) => {
         const newEvents = [...prev, { 
           type: lastMessage.type as string, 
           timestamp: Date.now(), 

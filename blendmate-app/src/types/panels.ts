@@ -14,7 +14,7 @@ export interface PanelProps {
   isVisible: boolean;
   isFocused: boolean;
   // Allow additional props to be passed through
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface PanelDefinition {
