@@ -1,5 +1,11 @@
 import bpy
 from . import connection
+from .events.mapping import (
+    create_file_saved_event,
+    create_file_loaded_event,
+    create_frame_changed_event,
+    create_node_active_event,
+)
 
 @bpy.app.handlers.persistent
 def on_depsgraph_update(scene, depsgraph):
@@ -9,29 +15,35 @@ def on_depsgraph_update(scene, depsgraph):
     if current_node_id and current_node_id != connection._last_node_id:
         connection._last_node_id = current_node_id
         connection.info(f"Node Change: {current_node_id}")
-        connection.send_to_blendmate({
-            "type": "context", 
-            "area": "gn", 
-            "node_id": current_node_id
-        })
+        # Use normalized event model
+        event = create_node_active_event(current_node_id, "GeometryNodeTree")
+        connection.send_to_blendmate(event.to_json_compatible())
     
     # We might want to throttle depsgraph_update events as they are very frequent
-    # connection.send_to_blendmate({"type": "event", "event": "depsgraph_update"})
+    # For full depsgraph updates, we could use:
+    # event = create_depsgraph_updated_event(scene_name=scene.name if scene else None)
+    # connection.send_to_blendmate(event.to_json_compatible())
 
 @bpy.app.handlers.persistent
 def on_frame_change(scene, *args):
     connection.info(f"Frame Change: {scene.frame_current}")
-    connection.send_to_blendmate({"type": "event", "event": "frame_change", "frame": scene.frame_current})
+    # Use normalized event model
+    event = create_frame_changed_event(scene.frame_current, scene.name if scene else None)
+    connection.send_to_blendmate(event.to_json_compatible())
 
 @bpy.app.handlers.persistent
 def on_save_post(scene, *args):
     connection.info("File Saved")
-    connection.send_to_blendmate({"type": "event", "event": "save_post", "filename": bpy.data.filepath})
+    # Use normalized event model
+    event = create_file_saved_event(bpy.data.filepath)
+    connection.send_to_blendmate(event.to_json_compatible())
 
 @bpy.app.handlers.persistent
 def on_load_post(scene, *args):
     connection.info("File Loaded")
-    connection.send_to_blendmate({"type": "event", "event": "load_post", "filename": bpy.data.filepath})
+    # Use normalized event model
+    event = create_file_loaded_event(bpy.data.filepath)
+    connection.send_to_blendmate(event.to_json_compatible())
 
 def register():
     connection.info("Registering Handlers")

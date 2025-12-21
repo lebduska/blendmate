@@ -4,7 +4,8 @@
 Blendmate is a context-aware assistant for Blender workflows that listens to Blender events via WebSockets and provides an extensible event console and knowledge support UI.
 
 ## Current state (as of now)
-- WebSocket addon for Blender implemented; sends Blender handler events.
+- WebSocket addon for Blender implemented; sends Blender handler events using normalized event model.
+- **Normalized event model** implemented in `blendmate-addon/events/` with stable event types, dataclass model, and mapping from Blender handlers.
 - Tauri/React app scaffold present; connects to WS and shows basic status/last message (#2, #3).
 - Protocol and knowledge extraction for Blender 4.5 started (#11, #13, #18).
 - Workflow and docs scaffolding present (`WORKFLOW.md`, `AGENTS.md`, task labels & priorities).
@@ -27,6 +28,8 @@ npm run tauri dev
 3. Blender knowledge extraction pipeline (#16, #17) — automate handler and API inventory.
 
 ## Known pitfalls / constraints
+- Event model uses normalized event types (e.g., `file.saved`, `scene.frame.changed`) defined in `blendmate-addon/events/types.py`.
+- All events from handlers are now wrapped in the Event dataclass with type, payload, timestamp, and source fields.
 - UI work depends on stable WebSocket protocol; disconnects and throttling must be handled first.
 - Do not start new feature tasks before top priorities are closed or clearly blocked.
 - Agents and CLI workflows depend on clean context files (CONTEXT.md, STATUS.md, AGENTS.md) for meaningful results.
