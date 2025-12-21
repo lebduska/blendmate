@@ -38,7 +38,7 @@ def throttle_event(event_type: str, event_data: Dict[str, Any], reason: Optional
         event_data: The event payload to send
         reason: Optional reason/tag for the event (used for dirty tracking)
     """
-    global _pending_events, _dirty_reasons, _flush_timer_registered
+    global _pending_events, _dirty_reasons
     
     # Store the latest event data (overwriting previous)
     _pending_events[event_type] = {

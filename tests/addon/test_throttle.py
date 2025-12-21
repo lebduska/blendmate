@@ -35,6 +35,7 @@ class TestThrottle(unittest.TestCase):
             mock_bpy.app.timers.unregister(throttle._flush_pending_events)
         throttle._pending_events.clear()
         throttle._dirty_reasons.clear()
+        throttle._send_function = None
 
     def test_set_throttle_interval(self):
         """Test setting the throttle interval."""
