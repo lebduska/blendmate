@@ -72,8 +72,14 @@ class TestRegistryStructure(unittest.TestCase):
             content = f.read()
         
         # Check for comments indicating delegation
-        register_section = content[content.find('def register():'):content.find('def unregister():')]
-        unregister_section = content[content.find('def unregister():'):]
+        register_pos = content.find('def register():')
+        unregister_pos = content.find('def unregister():')
+        
+        self.assertGreater(register_pos, -1, "register function should exist")
+        self.assertGreater(unregister_pos, -1, "unregister function should exist")
+        
+        register_section = content[register_pos:unregister_pos]
+        unregister_section = content[unregister_pos:]
         
         self.assertIn('events.registry', register_section, 
                      "Should mention registry in register function")
@@ -91,11 +97,21 @@ class TestRegistryStructure(unittest.TestCase):
         self.assertIn('"events"', content, "events module should be in modules list")
         
         # Verify it comes after handlers and connection
-        modules_section = content[content.find('modules = ['):content.find(']', content.find('modules = ['))]
+        modules_start = content.find('modules = [')
+        self.assertGreater(modules_start, -1, "modules list should exist")
+        
+        modules_end = content.find(']', modules_start)
+        self.assertGreater(modules_end, -1, "modules list should be closed")
+        
+        modules_section = content[modules_start:modules_end]
         
         handlers_pos = modules_section.find('"handlers"')
         connection_pos = modules_section.find('"connection"')
         events_pos = modules_section.find('"events"')
+        
+        self.assertGreater(handlers_pos, -1, "handlers should be in modules list")
+        self.assertGreater(connection_pos, -1, "connection should be in modules list")
+        self.assertGreater(events_pos, -1, "events should be in modules list")
         
         self.assertGreater(events_pos, handlers_pos, "events should come after handlers")
         self.assertGreater(events_pos, connection_pos, "events should come after connection")
