@@ -1,4 +1,11 @@
-export default function NodeHelpView() {
+interface NodeHelpViewProps {
+  nodeId: string;
+}
+
+export default function NodeHelpView({ nodeId }: NodeHelpViewProps) {
+  // TODO: Load actual node data from knowledge base
+  const displayName = nodeId.replace('GeometryNode', '').replace(/([A-Z])/g, ' $1').trim();
+  
   return (
     <div className="space-y-6">
       {/* Visual Title */}
@@ -7,7 +14,7 @@ export default function NodeHelpView() {
           📍
         </div>
         <div>
-          <h2 className="text-2xl font-black tracking-tighter">Instance on Points</h2>
+          <h2 className="text-2xl font-black tracking-tighter">{displayName}</h2>
           <p className="text-xs font-bold text-blendmate-blue uppercase tracking-widest opacity-60">Geometry Nodes • Basic</p>
         </div>
       </div>
