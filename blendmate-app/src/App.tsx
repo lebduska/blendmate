@@ -57,6 +57,9 @@ export default function App() {
         </div>
 
         {/* Render visible panels */}
+        {/* Note: Props are spread conditionally based on panel ID.
+            This is a trade-off for the MVP to keep panel props flexible.
+            Future enhancement: Consider a prop provider pattern for better decoupling. */}
         {visiblePanels.map((panelState: PanelState) => {
           const panelDef = PANEL_REGISTRY[panelState.id];
           const PanelComponent = panelDef.component;

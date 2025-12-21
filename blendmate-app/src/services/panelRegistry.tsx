@@ -1,6 +1,14 @@
 /**
  * Panel registry for BlendMate
  * Central registry of all available panels in the application
+ * 
+ * Note: Component types are cast to ComponentType<PanelProps> to allow
+ * panels with extended props to be stored in a common registry.
+ * Each panel receives its specific props via the index signature in PanelProps.
+ * This is an intentional trade-off between type safety and extensibility.
+ * 
+ * Future enhancement: Consider using a generic registry with discriminated unions
+ * for full type safety while maintaining flexibility.
  */
 
 import { ComponentType } from 'react';

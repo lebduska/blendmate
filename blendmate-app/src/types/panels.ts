@@ -13,7 +13,9 @@ export interface PanelProps {
   // Common props that all panels receive
   isVisible: boolean;
   isFocused: boolean;
-  // Allow additional props to be passed through
+  // Index signature allows panels to accept panel-specific props
+  // This is an intentional trade-off for extensibility in the MVP
+  // Future enhancement: Consider discriminated union types for full type safety
   [key: string]: unknown;
 }
 
