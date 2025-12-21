@@ -1,35 +1,45 @@
 import { useState, useEffect } from "react";
 import { useBlendmateSocket } from "./useBlendmateSocket";
-import NodeHelpView from "./components/NodeHelpView";
+import { usePanelManager } from "./usePanelManager";
+import { PANEL_REGISTRY } from "./services/panelRegistry";
 import HUD from "./components/layout/HUD";
 import Footer from "./components/layout/Footer";
 import Card from "./components/ui/Card";
 
 export default function App() {
   const { status, lastMessage, sendJson } = useBlendmateSocket();
-  const [activeTab, setActiveTab] = useState<'nodes' | 'stats' | 'chat'>('nodes');
+  const { panelStates, togglePanel, visiblePanels } = usePanelManager();
+  
   const [frame, setFrame] = useState(1);
   const [currentNodeId, setCurrentNodeId] = useState('GeometryNodeInstanceOnPoints');
+  const [events, setEvents] = useState<Array<{ type: string; timestamp: number; data: any }>>([]);
 
   // React to incoming context messages from Blender
   useEffect(() => {
     if (lastMessage) {
+      // Add to events log
+      setEvents((prev: Array<{ type: string; timestamp: number; data: any }>) => [...prev, { 
+        type: lastMessage.type as string, 
+        timestamp: Date.now(), 
+        data: lastMessage 
+      }]);
+
       if (lastMessage.type === 'context' && lastMessage.node_id) {
         setCurrentNodeId(lastMessage.node_id as string);
-        setActiveTab('nodes');
+        togglePanel('nodes-help');
       } else if (lastMessage.type === 'event' && lastMessage.event === 'frame_change') {
         setFrame(lastMessage.frame as number);
       }
     }
-  }, [lastMessage]);
+  }, [lastMessage, togglePanel]);
 
   return (
     <main className="flex flex-col h-screen overflow-hidden bg-blendmate-dark text-white font-sans selection:bg-blendmate-blue/30">
       
       <HUD 
         status={status} 
-        activeTab={activeTab} 
-        setActiveTab={setActiveTab} 
+        panelStates={panelStates}
+        onPanelToggle={togglePanel}
       />
 
       {/* --- MAIN ADVENTURE AREA --- */}
@@ -41,35 +51,43 @@ export default function App() {
           <Card label="Scene Verts" value="1.2M" colorClass="text-blendmate-blue" />
         </div>
 
-        {/* Node Help View (Mockup for #23) */}
-        {activeTab === 'nodes' && (
-          <div className="space-y-4">
-            <div className="flex gap-2 mb-4 overflow-x-auto pb-2 no-scrollbar">
-              {['GeometryNodeInstanceOnPoints', 'GeometryNodeCombineXYZ', 'GeometryNodeSeparateXYZ', 'Unknown'].map(id => (
-                <button 
-                  key={id}
-                  onClick={() => setCurrentNodeId(id)}
-                  className={`px-3 py-1 rounded-full text-[9px] font-bold uppercase whitespace-nowrap transition-all ${
-                    currentNodeId === id ? 'bg-blendmate-orange text-black' : 'bg-white/5 text-white/40 hover:bg-white/10'
-                  }`}
-                >
-                  {id.replace('GeometryNode', '')}
-                </button>
-              ))}
-            </div>
-            <section className="relative group">
-              <div className="absolute -inset-0.5 bg-gradient-to-r from-blendmate-blue to-blendmate-orange opacity-20 blur group-hover:opacity-40 transition duration-1000"></div>
+        {/* Render visible panels */}
+        {visiblePanels.map((panelState: { id: any; isVisible: any; isFocused: any }) => {
+          const panelDef = PANEL_REGISTRY[panelState.id as keyof typeof PANEL_REGISTRY];
+          const PanelComponent = panelDef.component;
+          
+          return (
+            <section 
+              key={panelState.id}
+              className={`relative group ${panelState.isFocused ? 'ring-2 ring-blendmate-blue/50' : ''}`}
+            >
+              <div className={`absolute -inset-0.5 bg-gradient-to-r from-blendmate-blue to-blendmate-orange opacity-20 blur group-hover:opacity-40 transition duration-1000 ${panelState.isFocused ? 'opacity-30' : ''}`}></div>
               <div className="relative bg-blendmate-gray rounded-3xl p-6 border border-white/10 shadow-2xl">
-                <NodeHelpView nodeId={currentNodeId} />
+                <PanelComponent 
+                  isVisible={panelState.isVisible}
+                  isFocused={panelState.isFocused}
+                  {...(panelState.id === 'nodes-help' && {
+                    currentNodeId,
+                    onNodeIdChange: setCurrentNodeId,
+                  })}
+                  {...(panelState.id === 'events-log' && {
+                    events,
+                  })}
+                  {...(panelState.id === 'chat' && {
+                    messages: [],
+                  })}
+                />
               </div>
             </section>
-          </div>
-        )}
+          );
+        })}
 
-        {/* Other Tabs content placeholders... */}
-        {activeTab === 'chat' && (
-          <section className="bg-blendmate-gray rounded-3xl p-6 border border-white/10 shadow-2xl min-h-[200px] flex items-center justify-center italic opacity-30">
-            Chat history is empty...
+        {/* Show helper message when no panels are visible */}
+        {visiblePanels.length === 0 && (
+          <section className="bg-blendmate-gray rounded-3xl p-12 border border-white/10 shadow-2xl min-h-[300px] flex flex-col items-center justify-center text-center">
+            <div className="text-6xl mb-4 opacity-20">👋</div>
+            <div className="text-xl font-bold mb-2 opacity-60">No panels visible</div>
+            <div className="text-sm opacity-40">Click a panel button in the header to get started</div>
           </section>
         )}
 
