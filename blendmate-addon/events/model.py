@@ -44,8 +44,11 @@ class Event:
         """
         Convert to a JSON-compatible dictionary suitable for WebSocket transmission.
         
-        This ensures all values are JSON-serializable and matches the format
-        expected by the Blendmate desktop app.
+        This method explicitly returns a dictionary structure that matches the
+        WebSocket protocol expected by the Blendmate desktop app. While currently
+        identical to to_dict(), keeping this separate allows for future protocol
+        changes (e.g., adding API version, filtering fields) without affecting
+        other dictionary conversions.
         
         Returns:
             Dictionary with all values safe for JSON serialization.

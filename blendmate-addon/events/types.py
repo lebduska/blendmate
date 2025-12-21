@@ -8,7 +8,8 @@ handler names to provide a consistent, semantic naming convention.
 Event naming convention:
 - Use dot notation for hierarchy (e.g., "file.saved", "scene.object.transform_changed")
 - Use past tense for completed actions (e.g., "saved", "loaded", "changed")
-- Use present tense for ongoing state (e.g., "frame_current", "node_active")
+- Use present tense for state queries (e.g., "active", "playing")
+- The actual event value uses a semantic, readable format (e.g., "editor.node.active" means a node is currently active)
 """
 
 

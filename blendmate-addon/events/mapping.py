@@ -15,7 +15,8 @@ from .model import Event
 HANDLER_TO_EVENT_TYPE = {
     "save_post": EventType.FILE_SAVED,
     "load_post": EventType.FILE_LOADED,
-    "load_pre": EventType.FILE_LOADED,  # Could be FILE_LOADING if we add that
+    # Note: load_pre is less commonly used; consider CONTEXT_CHANGED for pre-events
+    # "load_pre": EventType.FILE_LOADED,
     "frame_change_post": EventType.FRAME_CHANGED,
     "frame_change_pre": EventType.FRAME_CHANGED,
     "depsgraph_update_post": EventType.DEPSGRAPH_UPDATED,
