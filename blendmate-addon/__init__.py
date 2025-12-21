@@ -38,12 +38,6 @@ def register():
         mod = importlib.import_module(f".{mod_name}", __package__)
         if hasattr(mod, "register"):
             mod.register()
-    
-    # Set throttle interval from preferences
-    from . import preferences, throttle
-    prefs = preferences.get_preferences()
-    if prefs:
-        throttle.set_throttle_interval(prefs.throttle_interval / 1000.0)
 
 def unregister():
     # Unregister in reverse order
