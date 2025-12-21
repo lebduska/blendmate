@@ -27,5 +27,7 @@ Aktuálně addon odesílá tyto signály:
 - `depsgraph_update_post`: Při jakékoliv změně scény (např. posun objektu).
 - *Připravujeme:* Aktivní uzel v Geometry Nodes.
 
+**Poznámka:** Všechny Blender event handlery, timery a msgbus subscriptions jsou centralizovány v modulu `events/registry.py` pro konzistentní správu a idempotentní registraci/unregistraci.
+
 ## 📝 Vývoj
 Logy z addonu můžeš sledovat v systémové konzoli Blenderu (`Window` → `Toggle System Console` na Windows, nebo spuštěním Blenderu z terminálu na macOS/Linux).

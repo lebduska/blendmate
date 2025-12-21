@@ -43,26 +43,5 @@ def on_load_post(scene, *args):
     connection.info("File Loaded")
     connection.send_to_blendmate({"type": "event", "event": "load_post", "filename": bpy.data.filepath})
 
-def register():
-    connection.info("Registering Handlers")
-    handlers = bpy.app.handlers
-    
-    # Append safely to avoid duplicates if possible, though unregister should handle it
-    if on_save_post not in handlers.save_post:
-        handlers.save_post.append(on_save_post)
-    if on_load_post not in handlers.load_post:
-        handlers.load_post.append(on_load_post)
-    if on_depsgraph_update not in handlers.depsgraph_update_post:
-        handlers.depsgraph_update_post.append(on_depsgraph_update)
-    if on_frame_change not in handlers.frame_change_post:
-        handlers.frame_change_post.append(on_frame_change)
-
-def unregister():
-    handlers = bpy.app.handlers
-    for h in [on_save_post, on_load_post, on_depsgraph_update, on_frame_change]:
-        for handler_list in [handlers.save_post, handlers.load_post, handlers.depsgraph_update_post, handlers.frame_change_post]:
-            if h in handler_list:
-                try:
-                    handler_list.remove(h)
-                except ValueError:
-                    pass
+# Registration is now handled by events.registry module
+# This file only contains the handler functions themselves

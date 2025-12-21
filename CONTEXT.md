@@ -4,7 +4,7 @@ Tento soubor je rychlé „přistávací místo“ pro lidi i agenty:
 co Blendmate je, v jakém je stavu a na co se má práce soustředit.
 
 ---
-## What this project is (1–2 sentences)
+## What this project je (1–2 sentences)
 
 Blendmate je **kontextový asistent pro Blender**, který poslouchá Blender eventy přes WebSocket
 (a addon uvnitř Blenderu) a v desktopové appce nabízí event konzoli a znalostní nápovědu
@@ -14,6 +14,7 @@ pro Geometry Nodes nad lokální knowledge base.
 ## Current state (high‑level)
 
 - **Blender WebSocket add‑on** existuje a posílá vybrané handler eventy do lokálního serveru.
+- **Centralized event registry modul** (`blendmate-addon/events/registry.py`) spravuje všechny registrace handlerů, timerů a msgbusu.
 - **Tauri/React desktop app** má minimální shell (header + workspace + footer) a umí se připojit k WS serveru a zobrazit stav připojení.
 - **Panel-based UI**: Aplikace používá flexibilní panelový systém místo pevných tabů (viz `blendmate-app/PANELS.md`).
 - **Layout persistence (design)** — workspace layout má připravený návrh ukládání do `localStorage` (klíč `blendmate_layout`, verzované schéma `layoutVersion: 1`). Implementace se bude řídit panelem systémem.
@@ -57,6 +58,7 @@ Při práci vždy preferuj konkrétní otevřená issue před „obecným pocite
 ---
 ## Known pitfalls / constraints
 
+- All Blender event wiring (handlers, timers, msgbus) MUST go through `blendmate-addon/events/registry.py` – do not register directly.
 - Práce na UI předpokládá stabilní WebSocket protokol a rozumné throttling/disconnect chování.
 - Nezačínej nové feature úkoly, pokud nejsou dořešené/odblokované top priority (viz `prio:p0`).
 - Agenti i CLI workflow spoléhají na aktuální a konzistentní `CONTEXT.md` + `AGENTS.md`.

@@ -22,6 +22,7 @@ modules = [
     "throttle",
     "connection",
     "handlers",
+    "events",  # Registry must be registered after handlers and connection are loaded
     "operators",
     "ui",
 ]

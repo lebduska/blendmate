@@ -108,10 +108,7 @@ def register():
     global _thread
     info("Registering Connection module")
     
-    # Register timer for queue processing
-    if not bpy.app.timers.is_registered(process_queue):
-        bpy.app.timers.register(process_queue, first_interval=0.1)
-        info("Timer registered")
+    # Timer registration is now handled by events.registry module
 
     # Start WS thread
     _should_run.set()
@@ -122,9 +119,7 @@ def register():
 def unregister():
     global _ws, _thread
     
-    # 1. Stop timer
-    if bpy.app.timers.is_registered(process_queue):
-        bpy.app.timers.unregister(process_queue)
+    # Timer unregistration is now handled by events.registry module
 
     # 2. Signal thread to stop
     _should_run.clear()
