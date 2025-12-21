@@ -15,11 +15,13 @@ pro Geometry Nodes nad lokální knowledge base.
 
 - **Blender WebSocket add‑on** existuje a posílá vybrané handler eventy do lokálního serveru.
 - **Tauri/React desktop app** má minimální shell (header + workspace + footer) a umí se připojit k WS serveru a zobrazit stav připojení.
+- **Panel-based UI**: Aplikace používá flexibilní panelový systém místo pevných tabů (viz `blendmate-app/PANELS.md`).
 - **Knowledge layer pro Blender 4.5** je rozpracovaná (`knowledge/blender-4.5/...`).
 - **Workflow & dokumentace**: existují základní soubory (`WORKFLOW.md`, `AGENTS.md`, `CONTEXT.md`) a GitHub issue štítky/prioritizace.
 - **CI/CD a releasy**: zatím nejsou, buildy se dělají lokálně.
 
 Pro detailní architekturu viz `docs/ARCHITECTURE.md` a `docs/PROTOCOL_EVENTS.md`.
+Pro panel systém viz `blendmate-app/PANELS.md`.
 
 ---
 ## How to run (desktop app + addon)
