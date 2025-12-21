@@ -19,6 +19,7 @@ import sys
 # List of submodules to register in order
 modules = [
     "preferences",
+    "throttle",
     "connection",
     "handlers",
     "operators",
