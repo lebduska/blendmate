@@ -37,17 +37,9 @@ class TestThrottle(unittest.TestCase):
         throttle._dirty_reasons.clear()
         throttle._send_function = None
 
-    def test_set_throttle_interval(self):
-        """Test setting the throttle interval."""
-        throttle.set_throttle_interval(0.05)
-        self.assertEqual(throttle.get_throttle_interval(), 0.05)
-        
-        # Test clamping
-        throttle.set_throttle_interval(0.001)  # Too small
-        self.assertEqual(throttle.get_throttle_interval(), 0.01)
-        
-        throttle.set_throttle_interval(2.0)  # Too large
-        self.assertEqual(throttle.get_throttle_interval(), 1.0)
+    def test_throttle_interval_is_fixed(self):
+        """Test that throttle interval is fixed at 100ms."""
+        self.assertEqual(throttle._throttle_interval, 0.1)
 
     def test_throttle_event_queues_event(self):
         """Test that throttle_event queues an event."""
@@ -110,8 +102,7 @@ class TestThrottle(unittest.TestCase):
         self.assertIn("reason2", sent_data["reasons"])
 
     def test_flush_pending_events_waits_for_interval(self):
-        """Test that flush waits for the throttle interval."""
-        throttle.set_throttle_interval(0.05)
+        """Test that flush waits for the throttle interval (100ms)."""
         event_data = {"type": "event", "event": "test"}
         
         throttle.throttle_event("test", event_data)
@@ -122,7 +113,7 @@ class TestThrottle(unittest.TestCase):
         self.assertIsNotNone(result)  # Timer should continue
         
         # Wait for the interval and try again
-        time.sleep(0.06)
+        time.sleep(0.11)
         result = throttle._flush_pending_events()
         self.mock_send.assert_called_once()
         self.assertIsNone(result)  # Timer should stop (no more events)

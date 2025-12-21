@@ -1,66 +1,39 @@
 """
-Debounce/throttle layer for high-frequency Blender events.
+Minimal debounce/throttle layer for high-frequency Blender events.
 
-This module provides a shared mechanism to coalesce high-frequency events
-(like depsgraph_update_post and frame_change_post) within configurable time
-windows, and flush them via bpy.app.timers to avoid UI stutter.
+Coalesces events within a 100ms window and flushes via bpy.app.timers.
 """
 
 import time
 import bpy
 from typing import Dict, Any, Set, Optional
 
-# Global state for throttling
+# Global state
 _pending_events: Dict[str, Dict[str, Any]] = {}
 _dirty_reasons: Dict[str, Set[str]] = {}
-_throttle_interval = 0.1  # Default 100ms
-_send_function = None  # Will be set during registration
-
-def info(msg):
-    print(f"[Blendmate:Throttle] {msg}")
-
-def set_throttle_interval(interval: float):
-    """Set the throttle interval in seconds (e.g., 0.05 for 50ms, 0.2 for 200ms)."""
-    global _throttle_interval
-    _throttle_interval = max(0.01, min(1.0, interval))  # Clamp between 10ms and 1s
-    info(f"Throttle interval set to {_throttle_interval * 1000:.0f}ms")
-
-def get_throttle_interval() -> float:
-    """Get the current throttle interval in seconds."""
-    return _throttle_interval
+_throttle_interval = 0.1  # Fixed 100ms
+_send_function = None
 
 def throttle_event(event_type: str, event_data: Dict[str, Any], reason: Optional[str] = None):
-    """
-    Queue an event for throttled delivery.
-    
-    Args:
-        event_type: Unique identifier for the event type (e.g., "frame_change", "depsgraph_update")
-        event_data: The event payload to send
-        reason: Optional reason/tag for the event (used for dirty tracking)
-    """
+    """Queue an event for throttled delivery (100ms window)."""
     global _pending_events, _dirty_reasons
     
-    # Store the latest event data (overwriting previous)
     _pending_events[event_type] = {
         "data": event_data,
         "timestamp": time.time()
     }
     
-    # Track the reason for this event
     if reason:
         if event_type not in _dirty_reasons:
             _dirty_reasons[event_type] = set()
         _dirty_reasons[event_type].add(reason)
     
-    # Ensure flush timer is registered (race-safe with bpy.app.timers.is_registered check)
     _register_flush_timer()
 
 def _register_flush_timer():
     """Register the flush timer if not already registered."""
-    # Use bpy's is_registered check which is atomic/thread-safe
     if not bpy.app.timers.is_registered(_flush_pending_events):
         bpy.app.timers.register(_flush_pending_events, first_interval=_throttle_interval)
-        info("Flush timer registered")
 
 def _flush_pending_events() -> Optional[float]:
     """
@@ -142,25 +115,18 @@ def register():
     """Register the throttle system."""
     global _pending_events, _dirty_reasons, _send_function
     
-    info("Registering throttle system")
     _pending_events.clear()
     _dirty_reasons.clear()
     
-    # Set up the send function
     try:
         from . import connection
         _send_function = connection.send_to_blendmate
     except ImportError:
-        # For testing, _send_function can be set externally
         pass
 
 def unregister():
-    """Unregister the throttle system and flush any pending events."""
-    info("Unregistering throttle system")
-    
-    # Flush any pending events before shutdown
+    """Unregister the throttle system and flush pending events."""
     flush_immediate()
     
-    # Unregister timer if registered
     if bpy.app.timers.is_registered(_flush_pending_events):
         bpy.app.timers.unregister(_flush_pending_events)
