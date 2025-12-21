@@ -14,18 +14,21 @@ class MockBpy:
         
         class Timers:
             def __init__(self):
-                self._registered = []
+                self._registered_timers = []
             
-            def register(self, func, **kwargs):
-                if func not in self._registered:
-                    self._registered.append(func)
-            
-            def is_registered(self, func):
-                return func in self._registered
+            def register(self, func, first_interval=0.0, persistent=False):
+                """Mock timer registration."""
+                if func not in self._registered_timers:
+                    self._registered_timers.append(func)
             
             def unregister(self, func):
-                if func in self._registered:
-                    self._registered.remove(func)
+                """Mock timer unregistration."""
+                if func in self._registered_timers:
+                    self._registered_timers.remove(func)
+            
+            def is_registered(self, func):
+                """Check if timer is registered."""
+                return func in self._registered_timers
         
         def __init__(self):
             self.handlers = self.Handlers()

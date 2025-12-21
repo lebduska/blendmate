@@ -1,5 +1,6 @@
 import bpy
 from . import connection
+from . import throttle
 
 @bpy.app.handlers.persistent
 def on_depsgraph_update(scene, depsgraph):
@@ -15,13 +16,22 @@ def on_depsgraph_update(scene, depsgraph):
             "node_id": current_node_id
         })
     
-    # We might want to throttle depsgraph_update events as they are very frequent
-    # connection.send_to_blendmate({"type": "event", "event": "depsgraph_update"})
+    # Throttled depsgraph_update event (fallback only)
+    # Using throttle layer to avoid high-frequency spam
+    throttle.throttle_event(
+        "depsgraph_update",
+        {"type": "event", "event": "depsgraph_update"},
+        reason="depsgraph_changed"
+    )
 
 @bpy.app.handlers.persistent
 def on_frame_change(scene, *args):
-    connection.info(f"Frame Change: {scene.frame_current}")
-    connection.send_to_blendmate({"type": "event", "event": "frame_change", "frame": scene.frame_current})
+    # Throttle frame change events to avoid high-frequency spam during playback
+    throttle.throttle_event(
+        "frame_change",
+        {"type": "event", "event": "frame_change", "frame": scene.frame_current},
+        reason=f"frame_{scene.frame_current}"
+    )
 
 @bpy.app.handlers.persistent
 def on_save_post(scene, *args):
