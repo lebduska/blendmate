@@ -72,6 +72,7 @@ def on_object_location_changed():
                 "property": "location",
                 "value": list(active_obj.location)
             })
+        # Note: If no active object, we silently ignore (expected behavior for context-aware mode)
     except Exception as e:
         info(f"Error in on_object_location_changed: {e}")
 
@@ -93,6 +94,7 @@ def on_object_rotation_changed():
                 "property": "rotation_euler",
                 "value": list(active_obj.rotation_euler)
             })
+        # Note: If no active object, we silently ignore (expected behavior for context-aware mode)
     except Exception as e:
         info(f"Error in on_object_rotation_changed: {e}")
 
@@ -114,6 +116,7 @@ def on_object_scale_changed():
                 "property": "scale",
                 "value": list(active_obj.scale)
             })
+        # Note: If no active object, we silently ignore (expected behavior for context-aware mode)
     except Exception as e:
         info(f"Error in on_object_scale_changed: {e}")
 

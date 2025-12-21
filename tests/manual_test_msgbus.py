@@ -7,18 +7,20 @@ This simulates the addon registration and verifies subscriptions are set up.
 
 import bpy
 
+# Addon name from blender_manifest.toml
+ADDON_NAME = "blendmate-addon"
+
 def test_msgbus_subscriptions():
     """Test that msgbus subscriptions are properly registered."""
     
     print("\n=== Testing Blendmate msgbus subscriptions ===\n")
     
     # Check if addon is loaded
-    addon_name = "blendmate-addon"
-    if addon_name not in bpy.context.preferences.addons:
-        print(f"❌ ERROR: {addon_name} not loaded")
+    if ADDON_NAME not in bpy.context.preferences.addons:
+        print(f"❌ ERROR: {ADDON_NAME} not loaded")
         return False
     
-    print(f"✓ Addon {addon_name} is loaded")
+    print(f"✓ Addon {ADDON_NAME} is loaded")
     
     # Test that subscriptions module exists
     try:
