@@ -56,7 +56,12 @@ def on_object_name_changed():
 
 
 def on_object_location_changed():
-    """Called when any object's location changes."""
+    """Called when any object's location changes.
+    
+    Note: This subscription fires for ANY object location change, but we only
+    report the active object's transform since Blendmate focuses on user context.
+    If you need to track all objects, you'd need per-object subscriptions.
+    """
     try:
         active_obj = bpy.context.view_layer.objects.active
         if active_obj:
@@ -72,7 +77,12 @@ def on_object_location_changed():
 
 
 def on_object_rotation_changed():
-    """Called when any object's rotation changes."""
+    """Called when any object's rotation changes.
+    
+    Note: This subscription fires for ANY object rotation change, but we only
+    report the active object's transform since Blendmate focuses on user context.
+    If you need to track all objects, you'd need per-object subscriptions.
+    """
     try:
         active_obj = bpy.context.view_layer.objects.active
         if active_obj:
@@ -88,7 +98,12 @@ def on_object_rotation_changed():
 
 
 def on_object_scale_changed():
-    """Called when any object's scale changes."""
+    """Called when any object's scale changes.
+    
+    Note: This subscription fires for ANY object scale change, but we only
+    report the active object's transform since Blendmate focuses on user context.
+    If you need to track all objects, you'd need per-object subscriptions.
+    """
     try:
         active_obj = bpy.context.view_layer.objects.active
         if active_obj:

@@ -30,12 +30,13 @@ The `subscriptions.py` module replaces broad `depsgraph_update_post` handlers wi
   - `Object.rotation_euler`
   - `Object.scale`
 - **Event**: `object_transform_changed`
+- **Note**: Subscription fires for ANY object transform change, but only the **active object** is reported (focus on user context)
 - **Payload**: 
   ```json
   {
     "type": "event",
     "event": "object_transform_changed",
-    "object": "ObjectName",
+    "object": "ActiveObjectName",
     "property": "location|rotation_euler|scale",
     "value": [x, y, z]
   }
@@ -57,6 +58,12 @@ All callbacks:
 - Enqueue events via `connection.send_to_blendmate()`
 - Handle exceptions gracefully
 - Use `bpy.context` to read current state
+
+### Design: Context-Aware Reporting
+Transform subscriptions fire for ANY object but report only the **active object**. This is intentional:
+- Blendmate is a context-aware assistant focused on what the user is actively working with
+- Reporting every object transform would create noise
+- If tracking specific objects is needed, per-object subscriptions can be added
 
 ### Lifecycle
 1. **Register**: `subscribe_all()` creates owner and registers all subscriptions
