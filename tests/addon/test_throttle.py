@@ -23,7 +23,6 @@ class TestThrottle(unittest.TestCase):
         """Reset throttle state before each test."""
         throttle._pending_events.clear()
         throttle._dirty_reasons.clear()
-        throttle._flush_timer_registered = False
         throttle._throttle_interval = 0.1
         
         # Mock the send function
@@ -36,7 +35,6 @@ class TestThrottle(unittest.TestCase):
             mock_bpy.app.timers.unregister(throttle._flush_pending_events)
         throttle._pending_events.clear()
         throttle._dirty_reasons.clear()
-        throttle._flush_timer_registered = False
 
     def test_set_throttle_interval(self):
         """Test setting the throttle interval."""
