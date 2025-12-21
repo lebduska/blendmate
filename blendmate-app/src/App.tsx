@@ -61,7 +61,7 @@ export default function App() {
             <section className="relative group">
               <div className="absolute -inset-0.5 bg-gradient-to-r from-blendmate-blue to-blendmate-orange opacity-20 blur group-hover:opacity-40 transition duration-1000"></div>
               <div className="relative bg-blendmate-gray rounded-3xl p-6 border border-white/10 shadow-2xl">
-                <NodeHelpView />
+                <NodeHelpView nodeId={currentNodeId} />
               </div>
             </section>
           </div>

@@ -25,7 +25,7 @@ Blendmate is designed as a **quiet co-pilot**, not a needy chatbot. These rules 
 - No modals, popups, or forced navigation based on WebSocket events
 
 **Code Toggles:**
-- `App.tsx`: Comment lines 17-19 to disable node switching behavior
+- `App.tsx` lines 16-25: Context message handling - node switching behavior was removed from line 20
 - Future: Add `settings.autoSwitchToNode` boolean config
 
 ---
