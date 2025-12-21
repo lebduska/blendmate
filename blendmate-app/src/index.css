@@ -1,20 +1,14 @@
 @import "tailwindcss";
-@plugin "@tailwindcss/typography";
 
-@theme {
-  --color-blendmate-dark: #0a0a0a;
-  --color-blendmate-gray: #1a1a1a;
-  --color-blendmate-orange: #ff9d5c;
-  --color-blendmate-blue: #3d94ff;
-}
-
-/* Pokud ani toto neobarví pozadí na černo, CSS se vůbec nenačítá */
-:root {
-  background-color: #0a0a0a !important;
-  color: white;
+* {
+  box-sizing: border-box;
 }
 
 body {
   margin: 0;
-  background-color: #0a0a0a;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
