@@ -20,6 +20,7 @@ import sys
 modules = [
     "preferences",
     "connection",
+    "subscriptions",
     "handlers",
     "operators",
     "ui",
