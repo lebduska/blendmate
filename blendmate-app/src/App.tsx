@@ -12,11 +12,12 @@ export default function App() {
   const [currentNodeId, setCurrentNodeId] = useState('GeometryNodeInstanceOnPoints');
 
   // React to incoming context messages from Blender
+  // Rule 1 (UI_RULES.md): No auto-opening panels on events
   useEffect(() => {
     if (lastMessage) {
       if (lastMessage.type === 'context' && lastMessage.node_id) {
         setCurrentNodeId(lastMessage.node_id as string);
-        setActiveTab('nodes');
+        // Removed auto-switch to 'nodes' tab - user controls tab state
       } else if (lastMessage.type === 'event' && lastMessage.event === 'frame_change') {
         setFrame(lastMessage.frame as number);
       }
@@ -60,7 +61,7 @@ export default function App() {
             <section className="relative group">
               <div className="absolute -inset-0.5 bg-gradient-to-r from-blendmate-blue to-blendmate-orange opacity-20 blur group-hover:opacity-40 transition duration-1000"></div>
               <div className="relative bg-blendmate-gray rounded-3xl p-6 border border-white/10 shadow-2xl">
-                <NodeHelpView nodeId={currentNodeId} />
+                <NodeHelpView />
               </div>
             </section>
           </div>
