@@ -49,11 +49,18 @@ export const PANEL_REGISTRY: Record<PanelId, PanelDefinition> = {
  * Get initial panel states from registry
  */
 export function getInitialPanelStates() {
-  return Object.values(PANEL_REGISTRY).map((panel, index) => ({
+  const states = Object.values(PANEL_REGISTRY).map((panel) => ({
     id: panel.id,
     isVisible: panel.defaultVisible ?? false,
-    // First visible panel is focused by default
-    isFocused: (panel.defaultVisible ?? false) && index === 0,
+    isFocused: false, // Will be set below
     placement: panel.defaultPlacement,
   }));
+  
+  // Focus the first visible panel
+  const firstVisibleIndex = states.findIndex((state) => state.isVisible);
+  if (firstVisibleIndex !== -1) {
+    states[firstVisibleIndex].isFocused = true;
+  }
+  
+  return states;
 }
