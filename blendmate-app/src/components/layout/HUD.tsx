@@ -8,7 +8,8 @@ interface HUDProps {
 }
 
 export default function HUD({ status, panelStates, onPanelToggle }: HUDProps) {
-  const panelOrder: PanelId[] = ['nodes-help', 'events-log', 'chat', 'stats'];
+  // Derive panel order from registry keys to maintain consistency
+  const panelOrder = Object.keys(PANEL_REGISTRY) as PanelId[];
 
   return (
     <nav 

@@ -1,18 +1,11 @@
 import { useState, useEffect } from "react";
 import { useBlendmateSocket } from "./useBlendmateSocket";
 import { usePanelManager } from "./usePanelManager";
-import { PanelState } from "./types/panels";
+import { PanelState, LoggedEvent } from "./types/panels";
 import { PANEL_REGISTRY } from "./services/panelRegistry";
 import HUD from "./components/layout/HUD";
 import Footer from "./components/layout/Footer";
 import Card from "./components/ui/Card";
-
-// Type for logged events
-interface LoggedEvent {
-  type: string;
-  timestamp: number;
-  data: unknown;
-}
 
 export default function App() {
   const { status, lastMessage, sendJson } = useBlendmateSocket();
