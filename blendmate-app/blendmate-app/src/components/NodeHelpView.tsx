@@ -47,10 +47,15 @@ export default function NodeHelpView({ nodeId }: NodeHelpViewProps) {
     return (
       <div className="text-center py-12 px-6">
         <div className="text-4xl mb-4">✨</div>
-        <p className="text-white/40 italic text-sm leading-relaxed">{error || "Hledám informace..."}</p>
+        <p className="text-white/40 italic text-sm leading-relaxed">{error || `Hledám informace pro uzel ${nodeId}...`}</p>
       </div>
     );
   }
+
+  // safe defaults
+  const tags = entry.meta?.tags ?? [];
+  const descriptionMarkdown = entry.markdown || entry.meta?.description || "(žádný popis)";
+  const previewUrl = (entry as any).previewUrl || entry.meta?.previewUrl || null;
 
   return (
     <div className="space-y-6">
@@ -58,14 +63,14 @@ export default function NodeHelpView({ nodeId }: NodeHelpViewProps) {
       <div className="flex items-start justify-between">
         <div>
           <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-blendmate-blue mb-1 block">
-            {entry.meta.category}
+            {entry.meta?.category}
           </span>
           <h2 className="text-3xl font-black italic text-white drop-shadow-md">
-            {entry.meta.name}
+            {entry.meta?.name}
           </h2>
         </div>
         <div className="bg-white/5 border border-white/10 px-3 py-1 rounded-full text-[9px] font-mono opacity-40">
-          {entry.meta.node_id}
+          {entry.meta?.node_id || nodeId}
         </div>
       </div>
 
@@ -75,24 +80,32 @@ export default function NodeHelpView({ nodeId }: NodeHelpViewProps) {
         prose-p:text-white/80 prose-p:leading-relaxed
         prose-strong:text-blendmate-blue prose-strong:font-bold
       ">
-        <ReactMarkdown>{entry.markdown || entry.meta.description}</ReactMarkdown>
+        <ReactMarkdown>{descriptionMarkdown}</ReactMarkdown>
       </div>
 
-      {/* Visual Preview (Placeholder for real image) */}
+      {/* Visual Preview (shows image if available, otherwise placeholder) */}
       <div className="relative aspect-video bg-black/40 rounded-2xl border border-white/5 overflow-hidden group">
-        <div className="absolute inset-0 flex items-center justify-center">
-           <span className="text-xs text-white/10 font-mono italic">Preview Image Coming Soon</span>
-        </div>
+        {previewUrl ? (
+          <img src={previewUrl} alt={`${entry.meta?.name || 'Node'} preview`} className="object-cover w-full h-full" />
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center">
+             <span className="text-xs text-white/10 font-mono italic">Preview Image Coming Soon</span>
+          </div>
+        )}
         {/* V budoucnu: <img src={entry.previewUrl} className="..." /> */}
       </div>
 
       {/* Tags */}
       <div className="flex flex-wrap gap-2 pt-2">
-        {entry.meta.tags.map(tag => (
-          <span key={tag} className="px-2 py-0.5 bg-blendmate-blue/10 border border-blendmate-blue/20 rounded-md text-[9px] font-bold uppercase text-blendmate-blue/80">
-            #{tag}
-          </span>
-        ))}
+        {tags.length > 0 ? (
+          tags.map(tag => (
+            <span key={tag} className="px-2 py-0.5 bg-blendmate-blue/10 border border-blendmate-blue/20 rounded-md text-[9px] font-bold uppercase text-blendmate-blue/80">
+              #{tag}
+            </span>
+          ))
+        ) : (
+          <span className="px-2 py-0.5 bg-white/5 rounded-md text-[9px] italic text-white/40">Žádné tagy</span>
+        )}
       </div>
     </div>
   );
