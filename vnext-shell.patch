@@ -1,0 +1,355 @@
+diff --git a/blendmate-app/src/App.tsx b/blendmate-app/src/App.tsx
+index 1111111..2222222 100644
+--- a/blendmate-app/src/App.tsx
++++ b/blendmate-app/src/App.tsx
+@@ -1,200 +1,34 @@
+-import React, { useEffect, useMemo, useState } from "react";
+-import HUD from "./components/layout/HUD";
+-import Footer from "./components/layout/Footer";
+-import SandboxLayout from "./components/layout/SandboxLayout";
+-import { useBlendmateSocket } from "./useBlendmateSocket";
+-import { usePanelManager } from "./usePanelManager";
+-
+-export default function App() {
+-  // legacy/test orchestration...
+-  // (previous sandbox layout and event/state wiring)
+-  return (
+-    <main>
+-      <HUD />
+-      <SandboxLayout />
+-      <Footer />
+-    </main>
+-  );
+-}
++import React from "react";
++import { useBlendmateSocket } from "./useBlendmateSocket";
++import { AppShell } from "./app/AppShell";
++
++/**
++ * App = plumbing wrapper only.
++ * UI layout lives in src/app/AppShell.tsx (vNext).
++ */
++export default function App() {
++  const { status, lastMessage, sendJson } = useBlendmateSocket();
++
++  return (
++    <AppShell
++      socketStatus={status}
++      lastMessage={lastMessage}
++      sendJson={sendJson}
++    />
++  );
++}
+diff --git a/blendmate-app/src/app/AppShell.tsx b/blendmate-app/src/app/AppShell.tsx
+new file mode 100644
+index 0000000..3333333
+--- /dev/null
++++ b/blendmate-app/src/app/AppShell.tsx
+@@ -0,0 +1,96 @@
++import React, { useEffect } from "react";
++import { TopBar } from "./layout/TopBar";
++import { CenterWorkspace } from "./layout/CenterWorkspace";
++import { RightInspector } from "./layout/RightInspector";
++import { BottomBar } from "./layout/BottomBar";
++import { useLayoutStore } from "../state/layoutStore";
++
++export type SocketStatus = "connecting" | "connected" | "disconnected" | string;
++
++export type AppShellProps = {
++  socketStatus: SocketStatus;
++  lastMessage: any;
++  sendJson: (json: any) => void;
++};
++
++export function AppShell(props: AppShellProps) {
++  const layout = useLayoutStore();
++
++  useEffect(() => {
++    // Sanity marker: guarantees you're seeing the vNext shell build.
++    // eslint-disable-next-line no-console
++    console.info("Blendmate UI vNext Shell mounted");
++  }, []);
++
++  return (
++    <div className="h-screen w-screen overflow-hidden">
++      <TopBar
++        socketStatus={props.socketStatus}
++        inspectorOpen={layout.inspectorOpen}
++        onToggleInspector={layout.toggleInspector}
++        onResetLayout={layout.resetLayout}
++      />
++
++      <div className="flex h-[calc(100vh-88px)] w-full">
++        <div className="flex min-w-0 flex-1">
++          <CenterWorkspace />
++        </div>
++
++        {layout.inspectorOpen ? (
++          <div className="w-[360px] shrink-0 border-l border-white/10">
++            <RightInspector />
++          </div>
++        ) : null}
++      </div>
++
++      {layout.bottomOpen ? (
++        <div className="h-[44px] border-t border-white/10">
++          <BottomBar
++            lastMessage={props.lastMessage}
++            sendJson={props.sendJson}
++            onToggleBottom={layout.toggleBottom}
++            vnextBadge
++          />
++        </div>
++      ) : (
++        <div className="h-[44px] border-t border-white/10 flex items-center justify-between px-3 text-xs opacity-80">
++          <span>Bottom bar hidden</span>
++          <button
++            className="px-2 py-1 rounded hover:bg-white/10"
++            onClick={layout.toggleBottom}
++            type="button"
++          >
++            Show
++          </button>
++        </div>
++      )}
++    </div>
++  );
++}
+diff --git a/blendmate-app/src/app/layout/TopBar.tsx b/blendmate-app/src/app/layout/TopBar.tsx
+new file mode 100644
+index 0000000..4444444
+--- /dev/null
++++ b/blendmate-app/src/app/layout/TopBar.tsx
+@@ -0,0 +1,76 @@
++import React from "react";
++import type { SocketStatus } from "../AppShell";
++
++export type TopBarProps = {
++  socketStatus: SocketStatus;
++  inspectorOpen: boolean;
++  onToggleInspector: () => void;
++  onResetLayout: () => void;
++};
++
++function statusLabel(s: SocketStatus) {
++  if (s === "connected") return "Connected";
++  if (s === "connecting") return "Connecting&";
++  if (s === "disconnected") return "Disconnected";
++  return String(s || "Unknown");
++}
++
++export function TopBar(props: TopBarProps) {
++  const connected = props.socketStatus === "connected";
++
++  return (
++    <div
++      className="h-[44px] flex items-center justify-between px-3 border-b border-white/10"
++      data-tauri-drag-region
++    >
++      <div className="flex items-center gap-3" data-tauri-drag-region>
++        <div className="font-semibold tracking-tight" data-tauri-drag-region>
++          Blendmate
++        </div>
++        <span className="text-xs px-2 py-1 rounded bg-white/10" data-tauri-drag-region>
++          vNext Shell
++        </span>
++      </div>
++
++      <div className="flex items-center gap-2">
++        <div className="flex items-center gap-2 px-2 py-1 rounded bg-white/5">
++          <span
++            className={"inline-block h-2 w-2 rounded-full " + (connected ? "bg-green-500" : "bg-red-500")}
++            aria-label="socket-status"
++          />
++          <span className="text-xs opacity-80">{statusLabel(props.socketStatus)}</span>
++        </div>
++
++        <button
++          type="button"
++          className={"text-xs px-2 py-1 rounded hover:bg-white/10 " + (props.inspectorOpen ? "bg-white/10" : "")}
++          onClick={props.onToggleInspector}
++        >
++          Inspector
++        </button>
++
++        <button
++          type="button"
++          className="text-xs px-2 py-1 rounded hover:bg-white/10"
++          onClick={props.onResetLayout}
++          title="Reset layout"
++        >
++          Reset
++        </button>
++      </div>
++    </div>
++  );
++}
+diff --git a/blendmate-app/src/app/layout/CenterWorkspace.tsx b/blendmate-app/src/app/layout/CenterWorkspace.tsx
+new file mode 100644
+index 0000000..5555555
+--- /dev/null
++++ b/blendmate-app/src/app/layout/CenterWorkspace.tsx
+@@ -0,0 +1,42 @@
++import React from "react";
++
++export function CenterWorkspace() {
++  return (
++    <div className="flex h-full w-full flex-col">
++      <div className="h-[36px] flex items-center gap-2 px-3 border-b border-white/10">
++        <div className="text-xs px-2 py-1 rounded bg-white/10">Workspace</div>
++        <div className="text-xs opacity-60">tabs/splits later</div>
++      </div>
++
++      <div className="flex-1 min-h-0 p-4">
++        <div className="h-full w-full rounded-xl border border-white/10 flex items-center justify-center">
++          <div className="text-sm opacity-80 text-center max-w-[520px] px-6">
++            <div className="font-medium mb-2">Sandbox canvas</div>
++            <div className="opacity-70">
++              This is the vNext shell baseline. We'll add tabs, panels, and workflows on top of this.
++            </div>
++          </div>
++        </div>
++      </div>
++    </div>
++  );
++}
+diff --git a/blendmate-app/src/app/layout/RightInspector.tsx b/blendmate-app/src/app/layout/RightInspector.tsx
+new file mode 100644
+index 0000000..6666666
+--- /dev/null
++++ b/blendmate-app/src/app/layout/RightInspector.tsx
+@@ -0,0 +1,33 @@
++import React from "react";
++
++export function RightInspector() {
++  return (
++    <div className="h-full w-full p-3">
++      <div className="text-xs opacity-70 mb-2">Inspector</div>
++      <div className="rounded-xl border border-white/10 p-3">
++        <div className="text-sm font-medium mb-1">Nothing selected</div>
++        <div className="text-sm opacity-70">
++          Contextual help will appear here (tools, nodes, selection mode, shortcuts&).
++        </div>
++      </div>
++    </div>
++  );
++}
+diff --git a/blendmate-app/src/app/layout/BottomBar.tsx b/blendmate-app/src/app/layout/BottomBar.tsx
+new file mode 100644
+index 0000000..7777777
+--- /dev/null
++++ b/blendmate-app/src/app/layout/BottomBar.tsx
+@@ -0,0 +1,79 @@
++import React, { useMemo, useState } from "react";
++
++export type BottomBarProps = {
++  lastMessage: any;
++  sendJson: (json: any) => void;
++  onToggleBottom: () => void;
++  vnextBadge?: boolean;
++};
++
++export function BottomBar(props: BottomBarProps) {
++  const [prompt, setPrompt] = useState("");
++
++  const last = useMemo(() => {
++    if (!props.lastMessage) return "Awaiting Blender signal&";
++    try {
++      return "[RECV] " + JSON.stringify(props.lastMessage);
++    } catch {
++      return "[RECV] (unserializable message)";
++    }
++  }, [props.lastMessage]);
++
++  return (
++    <div className="h-full flex items-center gap-2 px-3" data-tauri-drag-region>
++      {props.vnextBadge ? (
++        <span className="text-[11px] px-2 py-1 rounded bg-white/10 shrink-0">vNext</span>
++      ) : null}
++
++      <button
++        type="button"
++        className="text-xs px-2 py-1 rounded hover:bg-white/10 shrink-0"
++        onClick={props.onToggleBottom}
++        title="Hide bottom bar"
++      >
++        Hide
++      </button>
++
++      <div className="flex-1 min-w-0">
++        <input
++          className="w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-sm outline-none"
++          placeholder="Ask your soulmate anything&"
++          value={prompt}
++          onChange={(e) => setPrompt(e.target.value)}
++        />
++      </div>
++
++      <button
++        type="button"
++        className="text-xs px-2 py-1 rounded hover:bg-white/10 shrink-0"
++        onClick={() => props.sendJson({ type: "ping" })}
++        title="Send ping"
++      >
++        Ping
++      </button>
++
++      <div className="max-w-[40%] min-w-[240px] truncate text-xs opacity-70" title={last}>
++        {last}
++      </div>
++    </div>
++  );
++}
+diff --git a/blendmate-app/src/state/layoutStore.ts b/blendmate-app/src/state/layoutStore.ts
+new file mode 100644
+index 0000000..8888888
+--- /dev/null
++++ b/blendmate-app/src/state/layoutStore.ts
+@@ -0,0 +1,71 @@
++import { useEffect, useMemo, useState } from "react";
++
++type LayoutState = {
++  inspectorOpen: boolean;
++  bottomOpen: boolean;
++};
++
++const KEY = "blendmate.layout.vnext";
++
++function readInitial(): LayoutState {
++  try {
++    const raw = localStorage.getItem(KEY);
++    if (!raw) return { inspectorOpen: true, bottomOpen: true };
++    const parsed = JSON.parse(raw);
++    return {
++      inspectorOpen: Boolean(parsed.inspectorOpen),
++      bottomOpen: Boolean(parsed.bottomOpen),
++    };
++  } catch {
++    return { inspectorOpen: true, bottomOpen: true };
++  }
++}
++
++export function useLayoutStore() {
++  const [state, setState] = useState<LayoutState>(() => readInitial());
++
++  useEffect(() => {
++    try {
++      localStorage.setItem(KEY, JSON.stringify(state));
++    } catch {
++      // ignore
++    }
++  }, [state]);
++
++  return useMemo(
++    () => ({
++      inspectorOpen: state.inspectorOpen,
++      bottomOpen: state.bottomOpen,
++      toggleInspector: () =>
++        setState((s) => ({ ...s, inspectorOpen: !s.inspectorOpen })),
++      toggleBottom: () =>
++        setState((s) => ({ ...s, bottomOpen: !s.bottomOpen })),
++      resetLayout: () => setState({ inspectorOpen: true, bottomOpen: true }),
++    }),
++    [state]
++  );
++}
