@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import { KBNodeEntry } from "../types/kb";
 import { loadNodeHelp } from "../services/kbLoader";
+import ImagePlaceholder from "./ui/ImagePlaceholder";
 
 interface NodeHelpViewProps {
   nodeId: string;
@@ -99,9 +100,11 @@ export default function NodeHelpView({ nodeId }: NodeHelpViewProps) {
           {previewUrl ? (
             <img src={previewUrl} alt={`${entry.meta?.name || 'Node'} preview`} className="object-cover w-full h-full" />
           ) : (
-            <div className="flex-1 flex flex-col items-center justify-center gap-3 p-6">
-              <div className="text-4xl sm:text-6xl">🖼️</div>
-              <div className="text-sm sm:text-base text-white/40 font-semibold">Preview Image Coming Soon</div>
+            <div className="flex-1 p-2">
+              <div className="w-full h-full rounded-md overflow-hidden shadow-inner">
+                <ImagePlaceholder />
+              </div>
+              <div className="mt-3 text-sm sm:text-base text-white/40 font-semibold">Preview Image Coming Soon</div>
               <div className="text-[11px] text-white/30">This node has no visual preview yet — try picking another node from the outliner.</div>
             </div>
           )}
