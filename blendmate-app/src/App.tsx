@@ -1,11 +1,9 @@
 import { useState, useEffect } from "react";
 import { useBlendmateSocket } from "./useBlendmateSocket";
 import { usePanelManager } from "./usePanelManager";
-import { PanelState, LoggedEvent } from "./types/panels";
-import { PANEL_REGISTRY } from "./services/panelRegistry";
+import { LoggedEvent } from "./types/panels";
 import HUD from "./components/layout/HUD";
 import Footer from "./components/layout/Footer";
-import Card from "./components/ui/Card";
 import SandboxLayout from "./components/layout/SandboxLayout";
 
 export default function App() {
@@ -55,7 +53,6 @@ export default function App() {
         setCurrentNodeId={setCurrentNodeId}
         events={events}
         frame={frame}
-        sendJson={sendJson}
       />
 
       <Footer lastMessage={lastMessage} sendJson={sendJson} />

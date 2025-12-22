@@ -1,8 +1,6 @@
-import React from "react";
 import { PanelState } from "../../types/panels";
 import { PANEL_REGISTRY } from "../../services/panelRegistry";
 import NodeHelpView from "../NodeHelpView";
-import Card from "../ui/Card";
 
 interface SandboxLayoutProps {
   visiblePanels: PanelState[];
@@ -10,10 +8,9 @@ interface SandboxLayoutProps {
   setCurrentNodeId: (id: string) => void;
   events: any[];
   frame: number;
-  sendJson: (payload: any) => void;
 }
 
-export default function SandboxLayout({ visiblePanels, currentNodeId, setCurrentNodeId, events, frame, sendJson }: SandboxLayoutProps) {
+export default function SandboxLayout({ visiblePanels, currentNodeId, setCurrentNodeId, events, frame }: SandboxLayoutProps) {
   return (
     <div className="flex-1 flex flex-col h-full overflow-auto p-6 space-y-4 custom-scrollbar">
 
@@ -104,4 +101,3 @@ export default function SandboxLayout({ visiblePanels, currentNodeId, setCurrent
     </div>
   );
 }
-
