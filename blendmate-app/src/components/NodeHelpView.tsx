@@ -1,60 +1,112 @@
+import { useEffect, useState } from "react";
+import ReactMarkdown from "react-markdown";
+import { KBNodeEntry } from "../types/kb";
+import { loadNodeHelp } from "../services/kbLoader";
+
 interface NodeHelpViewProps {
   nodeId: string;
 }
 
 export default function NodeHelpView({ nodeId }: NodeHelpViewProps) {
-  // TODO: Load actual node data from knowledge base
-  const displayName = nodeId.replace('GeometryNode', '').replace(/([A-Z])/g, ' $1').trim();
-  
+  const [entry, setEntry] = useState<KBNodeEntry | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+    setLoading(true);
+    setError(null);
+
+    loadNodeHelp(nodeId)
+      .then((data) => {
+        if (isMounted) {
+          setEntry(data);
+          setLoading(false);
+        }
+      })
+      .catch(() => {
+        if (isMounted) {
+          setError("Tenhle uzel ještě neznám, ale brzy se ho naučím! 🎓");
+          setLoading(false);
+        }
+      });
+
+    return () => { isMounted = false; };
+  }, [nodeId]);
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12 space-y-4 animate-pulse">
+        <div className="w-12 h-12 rounded-full bg-white/10" />
+        <div className="h-4 w-32 bg-white/10 rounded" />
+      </div>
+    );
+  }
+
+  if (error || !entry) {
+    return (
+      <div className="text-center py-12 px-6">
+        <div className="text-4xl mb-4">✨</div>
+        <p className="text-white/40 italic text-sm leading-relaxed">{error || `Hledám informace pro uzel ${nodeId}...`}</p>
+      </div>
+    );
+  }
+
+  // safe defaults
+  const tags = entry.meta?.tags ?? [];
+  const descriptionMarkdown = entry.markdown || entry.meta?.description || "(žádný popis)";
+  const previewUrl = (entry as any)?.previewUrl ?? (entry.meta as any)?.previewUrl ?? null;
+
   return (
     <div className="space-y-6">
-      {/* Visual Title */}
-      <div className="flex items-center gap-4">
-        <div className="w-12 h-12 bg-blendmate-blue rounded-2xl flex items-center justify-center text-2xl shadow-lg shadow-blendmate-blue/20">
-          📍
-        </div>
+      {/* Header */}
+      <div className="flex items-start justify-between">
         <div>
-          <h2 className="text-2xl font-black tracking-tighter">{displayName}</h2>
-          <p className="text-xs font-bold text-blendmate-blue uppercase tracking-widest opacity-60">Geometry Nodes • Basic</p>
+          <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-blendmate-blue mb-1 block">
+            {entry.meta?.category}
+          </span>
+          <h2 className="text-3xl font-black italic text-white drop-shadow-md">
+            {entry.meta?.name}
+          </h2>
+        </div>
+        <div className="bg-white/5 border border-white/10 px-3 py-1 rounded-full text-[9px] font-mono opacity-40">
+          {entry.meta?.node_id || nodeId}
         </div>
       </div>
 
-      {/* Child-friendly explanation */}
-      <section className="bg-black/20 rounded-3xl p-5 border border-white/5 italic text-lg leading-relaxed text-white/90">
-        "Imagine you have a handful of <span className="text-blendmate-orange font-bold">stickers</span> and a <span className="text-blendmate-blue font-bold">map</span>. This node puts a sticker on every town on that map!"
-      </section>
+      {/* Description / Markdown */}
+      <div className="prose prose-invert prose-sm max-w-none
+        prose-headings:italic prose-headings:font-black prose-headings:text-blendmate-orange
+        prose-p:text-white/80 prose-p:leading-relaxed
+        prose-strong:text-blendmate-blue prose-strong:font-bold
+      ">
+        <ReactMarkdown>{descriptionMarkdown}</ReactMarkdown>
+      </div>
 
-      {/* The "What goes where" simplified diagram */}
-      <div className="grid grid-cols-1 gap-3">
-        <div className="flex items-center gap-3 p-3 bg-white/5 rounded-2xl border border-white/5 hover:bg-white/10 transition-colors group">
-          <div className="w-8 h-8 rounded-full bg-blendmate-blue flex items-center justify-center text-xs font-bold group-hover:scale-110 transition-transform">1</div>
-          <div>
-            <p className="text-[10px] uppercase font-bold opacity-40">The Map (Points)</p>
-            <p className="text-sm">Where do we put things?</p>
+      {/* Visual Preview (shows image if available, otherwise placeholder) */}
+      <div className="relative aspect-video bg-black/40 rounded-2xl border border-white/5 overflow-hidden group">
+        {previewUrl ? (
+          <img src={previewUrl} alt={`${entry.meta?.name || 'Node'} preview`} className="object-cover w-full h-full" />
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center">
+             <span className="text-xs text-white/10 font-mono italic">Preview Image Coming Soon</span>
           </div>
-        </div>
-        <div className="flex items-center gap-3 p-3 bg-white/5 rounded-2xl border border-white/5 hover:bg-white/10 transition-colors group">
-          <div className="w-8 h-8 rounded-full bg-blendmate-orange flex items-center justify-center text-xs font-bold group-hover:scale-110 transition-transform">2</div>
-          <div>
-            <p className="text-[10px] uppercase font-bold opacity-40">The Sticker (Instance)</p>
-            <p className="text-sm">What are we putting there?</p>
-          </div>
-        </div>
+        )}
+        {/* V budoucnu: <img src={entry.previewUrl} className="..." /> */}
       </div>
 
-      {/* Pro-tip / Pitfall in a friendly way */}
-      <div className="bg-blendmate-orange/10 border border-blendmate-orange/20 rounded-2xl p-4 flex gap-4">
-        <div className="text-2xl">⚠️</div>
-        <div>
-          <h4 className="text-xs font-black uppercase text-blendmate-orange mb-1">Watch out!</h4>
-          <p className="text-xs opacity-70">If your computer starts breathing heavily, you might be putting too many stickers. Try to use simple stickers first!</p>
-        </div>
+      {/* Tags */}
+      <div className="flex flex-wrap gap-2 pt-2">
+        {tags.length > 0 ? (
+          tags.map(tag => (
+            <span key={tag} className="px-2 py-0.5 bg-blendmate-blue/10 border border-blendmate-blue/20 rounded-md text-[9px] font-bold uppercase text-blendmate-blue/80">
+              #{tag}
+            </span>
+          ))
+        ) : (
+          <span className="px-2 py-0.5 bg-white/5 rounded-md text-[9px] italic text-white/40">Žádné tagy</span>
+        )}
       </div>
-
-      {/* Action button for kids */}
-      <button className="w-full py-4 bg-blendmate-blue text-black font-black uppercase tracking-tighter rounded-2xl hover:bg-blue-400 active:scale-95 transition-all shadow-xl shadow-blendmate-blue/20">
-        Show me an example! ✨
-      </button>
     </div>
   );
 }
