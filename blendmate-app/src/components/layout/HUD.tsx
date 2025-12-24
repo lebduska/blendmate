@@ -1,5 +1,7 @@
 import { PanelId, PanelState } from '../../types/panels';
 import { PANEL_REGISTRY } from '../../services/panelRegistry';
+import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
 
 interface HUDProps {
   status: string;
@@ -12,22 +14,28 @@ export default function HUD({ status, panelStates, onPanelToggle }: HUDProps) {
   const panelOrder = Object.keys(PANEL_REGISTRY) as PanelId[];
 
   return (
-    <nav 
+    <nav
       data-tauri-drag-region
-      className="flex items-center justify-between px-6 py-4 border-b border-white/5 bg-blendmate-gray/20 backdrop-blur-xl cursor-default"
+      className="flex items-center justify-between px-6 py-3 border-b bg-background/50 backdrop-blur-xl cursor-default"
     >
       <div data-tauri-drag-region className="flex items-center gap-4 select-none">
         <div className="relative">
-          <div className={`w-3 h-3 rounded-full ${status === 'connected' ? 'bg-green-500' : 'bg-red-500'} shadow-[0_0_15px_rgba(34,197,94,0.6)]`} />
-          {status === 'connected' && <div className="absolute inset-0 w-3 h-3 rounded-full bg-green-500 animate-ping opacity-75" />}
+          <div className={cn(
+            "w-2.5 h-2.5 rounded-full",
+            status === 'connected' ? 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]' : 'bg-destructive'
+          )} />
+          {status === 'connected' && <div className="absolute inset-0 w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping opacity-40" />}
         </div>
-        <h1 className="text-sm font-black tracking-[0.2em] uppercase italic">
-          Blend<span className="text-blendmate-blue">Mate</span> <span className="text-[10px] font-normal opacity-30 ml-2">v0.1.0</span>
-        </h1>
+        <div className="flex flex-col">
+          <h1 className="text-xs font-black tracking-[0.2em] uppercase italic">
+            Blend<span className="text-primary">Mate</span>
+          </h1>
+          <span className="text-[9px] font-mono opacity-30">COMPANION v0.1.0</span>
+        </div>
       </div>
 
       {/* Panel launcher / focus switcher */}
-      <div className="flex bg-black/40 p-1 rounded-full border border-white/5">
+      <div className="flex bg-muted/50 p-1 rounded-lg border">
         {panelOrder.map((panelId) => {
           const panel = PANEL_REGISTRY[panelId];
           const state = panelStates.find((p) => p.id === panelId);
@@ -38,20 +46,27 @@ export default function HUD({ status, panelStates, onPanelToggle }: HUDProps) {
             <button
               key={panelId}
               onClick={() => onPanelToggle(panelId)}
-              className={`px-4 py-1.5 rounded-full text-[10px] font-bold uppercase transition-all ${
+              className={cn(
+                "px-3 py-1.5 rounded-md text-[10px] font-bold uppercase transition-all flex items-center gap-2",
                 isFocused && isVisible
-                  ? 'bg-blendmate-blue text-black'
+                  ? 'bg-background text-foreground shadow-sm ring-1 ring-border'
                   : isVisible
-                  ? 'bg-white/10 text-white'
-                  : 'text-white/40 hover:text-white'
-              }`}
+                  ? 'bg-primary/10 text-primary hover:bg-primary/20'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+              )}
               title={panel.title}
             >
-              <span className="mr-1">{panel.icon}</span>
-              {panel.title.split(' ')[0]}
+              <span>{panel.icon}</span>
+              <span className="hidden sm:inline">{panel.title.split(' ')[0]}</span>
             </button>
           );
         })}
+      </div>
+
+      <div className="flex items-center gap-2">
+         <Badge variant="outline" className="font-mono text-[9px] px-1.5 py-0">
+           {status === 'connected' ? 'ONLINE' : 'OFFLINE'}
+         </Badge>
       </div>
     </nav>
   );

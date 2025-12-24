@@ -39,9 +39,9 @@ export default function App() {
   }, [lastMessage, togglePanel]);
 
   return (
-    <main className="flex flex-col h-screen overflow-hidden bg-blendmate-dark text-white font-sans selection:bg-blendmate-blue/30">
+    <main className="flex flex-col h-screen overflow-hidden bg-background text-foreground font-sans selection:bg-primary/30">
       <HUD
-        status={status} 
+        status={status}
         panelStates={panelStates}
         onPanelToggle={togglePanel}
       />

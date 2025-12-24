@@ -1,3 +1,5 @@
+import { Activity } from "lucide-react";
+
 interface FooterProps {
   lastMessage: any;
   sendJson: (json: any) => void;
@@ -5,30 +7,30 @@ interface FooterProps {
 
 export default function Footer({ lastMessage, sendJson }: FooterProps) {
   return (
-    <footer 
+    <footer
       data-tauri-drag-region
-      className="p-4 bg-black/60 border-t border-white/5 backdrop-blur-2xl cursor-default"
+      className="p-3 bg-muted/20 border-t backdrop-blur-2xl cursor-default"
     >
-      <div className="flex items-center gap-3 mb-3">
-        <input 
-          type="text" 
-          placeholder="Ask your soulmate anything..." 
-          className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-xs focus:outline-none focus:border-blendmate-blue/50 transition-all"
-        />
-        <button 
-          onClick={() => sendJson({type: "ping"})}
-          className="bg-blendmate-blue text-black p-2 rounded-xl hover:scale-105 transition-transform"
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 5l7 7-7 7M5 5l7 7-7 7" /></svg>
-        </button>
-      </div>
-      <div className="font-mono text-[9px] text-white/20 flex justify-between items-center">
-        <div className="truncate max-w-[70%]">
-          {lastMessage ? `[RECV] ${JSON.stringify(lastMessage)}` : '> Awaiting Blender signal...'}
+      <div className="font-mono text-[9px] text-muted-foreground flex justify-between items-center gap-4">
+        <div className="truncate bg-muted/50 px-2 py-1 rounded border flex-1">
+          {lastMessage ? (
+             <span className="flex gap-2">
+               <span className="text-primary font-bold">[RECV]</span>
+               <span className="truncate opacity-70">{JSON.stringify(lastMessage)}</span>
+             </span>
+          ) : (
+            <span className="opacity-40 italic animate-pulse">Awaiting Blender signal...</span>
+          )}
         </div>
-        <div className="flex gap-2">
-          <span className="animate-pulse">●</span>
-          <span>60 FPS</span>
+        <div className="flex items-center gap-3 shrink-0">
+          <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-emerald-500/10 text-emerald-500 font-bold border border-emerald-500/20">
+            <Activity className="size-3" />
+            <span>60 FPS</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <span className="size-1.5 rounded-full bg-primary animate-pulse" />
+            <span className="uppercase tracking-widest opacity-50 text-[8px]">Stream</span>
+          </div>
         </div>
       </div>
     </footer>
