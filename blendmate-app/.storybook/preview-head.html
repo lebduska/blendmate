@@ -36,3 +36,27 @@
 })();
 </script>
 
+<style>
+/* Force dark styling for Storybook Docs containers (fallback for cases where 'dark' class isn't applied) */
+.sbdocs, .sbdocs-wrapper, .docs, .docs-story, .docs-root, .docblock, .sbdocs * {
+  background-color: #0b0d0f !important;
+  color: #dbeafe !important;
+}
+/* Keep tables and panels transparent but with dark text color */
+.sbdocs table, .sbdocs thead, .sbdocs tbody, .sbdocs tr, .sbdocs td, .sbdocs th,
+.docs table, .docs thead, .docs tbody, .docs tr, .docs td, .docs th {
+  background-color: transparent !important;
+  color: inherit !important;
+  border-color: rgba(255,255,255,0.06) !important;
+}
+/* Pre/code blocks */
+.sbdocs pre, .sbdocs code, .docs pre, .docs code {
+  background: #07121a !important;
+  color: #dbeafe !important;
+}
+/* Controls table rows */
+.docs .props-table td, .docs .props-table th, .sbdocs .props-table td, .sbdocs .props-table th {
+  background: transparent !important;
+  color: inherit !important;
+}
+</style>
