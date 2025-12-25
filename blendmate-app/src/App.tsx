@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useBlendmateSocket } from "./useBlendmateSocket";
-import { Outliner, NodeHelpView, Panels, } from "@/components";
+import { Outliner, NodeHelpView } from "@/components";
 import { EventsLogPanel } from "@/components/panels";
 import { Activity, LayoutGrid, Info, ListTree } from "lucide-react";
 import BackgroundPaths from "@/components/ui/BackgroundPaths";
