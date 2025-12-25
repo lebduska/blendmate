@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { PanelProps } from '../../types/panels';
-import { useBlendmateSocket } from '../../useBlendmateSocket';
+import { PanelProps } from '@/types/panels.ts';
+import { useBlendmateSocket } from '@/useBlendmateSocket.ts';
 import { Badge, ScrollArea, Button } from '@/components/ui';
 import { ListTree } from 'lucide-react';
 
