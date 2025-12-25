@@ -2,10 +2,9 @@ import { useEffect, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import { KBNodeEntry } from "../types/kb";
 import { loadNodeHelp } from "../services/kbLoader";
-import ImagePlaceholder from "./ui/ImagePlaceholder";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Sparkles, Info, Tag } from "lucide-react";
+import { Sparkles, Tag } from "lucide-react";
 
 interface NodeHelpViewProps {
   nodeId: string;
@@ -68,7 +67,7 @@ export default function NodeHelpView({ nodeId }: NodeHelpViewProps) {
   // safe defaults
   const tags = entry.meta?.tags ?? [];
   const descriptionMarkdown = entry.markdown || entry.meta?.description || "(žádný popis)";
-  const previewUrl = (entry as any)?.previewUrl ?? (entry.meta as any)?.previewUrl ?? null;
+
 
   return (
     <div className="space-y-6 mono-panel">
@@ -95,21 +94,6 @@ export default function NodeHelpView({ nodeId }: NodeHelpViewProps) {
         prose-p:text-muted-foreground prose-p:leading-relaxed prose-strong:text-foreground
       ">
         <ReactMarkdown>{descriptionMarkdown}</ReactMarkdown>
-      </div>
-
-      {/* Visual Preview */}
-      <div className="relative rounded-xl border overflow-hidden group aspect-video bg-muted/50">
-        {previewUrl ? (
-          <img src={previewUrl} alt={`${entry.meta?.name || 'Node'} preview`} className="object-cover w-full h-full transition-transform group-hover:scale-105" />
-        ) : (
-          <div className="w-full h-full p-4 flex flex-col items-center justify-center text-center">
-            <ImagePlaceholder />
-            <div className="mt-4 flex items-center gap-2 text-xs font-medium text-muted-foreground">
-              <Info className="size-3" />
-              Preview Image Coming Soon
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Tags */}

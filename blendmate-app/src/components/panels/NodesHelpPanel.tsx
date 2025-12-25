@@ -1,4 +1,4 @@
-import { PanelProps } from '../../types/panels';
+import { PanelProps } from '@/types/panels.ts';
 import NodeHelpView from '../NodeHelpView';
 
 export default function NodesHelpPanel(props: PanelProps) {
