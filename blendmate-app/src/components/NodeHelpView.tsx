@@ -2,8 +2,7 @@ import { useEffect, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import { KBNodeEntry } from "../types/kb";
 import { loadNodeHelp } from "../services/kbLoader";
-import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Badge, Skeleton } from "@/components/ui";
 import { Sparkles, Tag } from "lucide-react";
 
 interface NodeHelpViewProps {

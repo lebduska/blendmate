@@ -3,7 +3,7 @@ import { useBlendmateSocket } from "./useBlendmateSocket";
 import { Outliner, NodeHelpView } from "@/components";
 import { EventsLogPanel } from "@/components/panels";
 import { Activity, LayoutGrid, Info, ListTree } from "lucide-react";
-import BackgroundPaths from "@/components/ui/BackgroundPaths";
+import { BackgroundPaths } from "@/components/ui";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup, Card, ScrollArea } from "@/components/ui";
 
 // Color tokens (increased opacity for debug visibility)

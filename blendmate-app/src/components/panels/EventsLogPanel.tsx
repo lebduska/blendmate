@@ -1,9 +1,7 @@
 import { useEffect, useState } from 'react';
 import { PanelProps } from '../../types/panels';
 import { useBlendmateSocket } from '../../useBlendmateSocket';
-import { Badge } from '@/components/ui/badge';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Button } from '@/components/ui/button';
+import { Badge, ScrollArea, Button } from '@/components/ui';
 import { ListTree } from 'lucide-react';
 
 export default function EventsLogPanel(_props: PanelProps) {
