@@ -1,0 +1,38 @@
+<script>
+// Ensure preview and docs iframes get Tailwind 'dark' class so docs render in dark mode.
+(function () {
+  try {
+    // Add dark class to this document (preview/doc iframe)
+    document.documentElement.classList.add('dark');
+
+    // Also try to patch parent-produced iframes when loaded (in case docs creates nested iframes)
+    function applyDarkToIframes(root) {
+      try {
+        const iframes = (root || document).querySelectorAll('iframe');
+        for (const f of iframes) {
+          try {
+            const doc = f.contentDocument || f.contentWindow && f.contentWindow.document;
+            if (doc && doc.documentElement && !doc.documentElement.classList.contains('dark')) {
+              doc.documentElement.classList.add('dark');
+            }
+          } catch (e) {
+            // ignore cross-origin or inaccessible frames
+          }
+        }
+      } catch (e) {}
+    }
+
+    // apply now and watch for future iframes
+    applyDarkToIframes(document);
+    const mo = new MutationObserver((mutations) => {
+      for (const m of mutations) {
+        if (m.addedNodes) applyDarkToIframes(m.target);
+      }
+    });
+    mo.observe(document.documentElement, { childList: true, subtree: true });
+  } catch (err) {
+    // ignore
+  }
+})();
+</script>
+
