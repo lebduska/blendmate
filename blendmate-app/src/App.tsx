@@ -1,13 +1,10 @@
 import { useState, useEffect } from "react";
 import { useBlendmateSocket } from "./useBlendmateSocket";
-import { Card } from "@/components/ui/card";
-import {BackgroundPaths} from "@/components/ui/BackgroundPaths";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import Outliner from "./components/Outliner";
-import NodeHelpView from "./components/NodeHelpView";
-import EventsLogPanel from "./components/panels/EventsLogPanel";
-import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
+import { Outliner, NodeHelpView } from "@/components";
+import { EventsLogPanel } from "@/components/panels";
 import { Activity, LayoutGrid, Info, ListTree } from "lucide-react";
+import BackgroundPaths from "@/components/ui/BackgroundPaths";
+import { ResizableHandle, ResizablePanel, ResizablePanelGroup, Card, ScrollArea } from "@/components/ui";
 
 // Color tokens (increased opacity for debug visibility)
 

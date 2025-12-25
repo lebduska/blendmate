@@ -1,5 +1,5 @@
 import { ReactNode } from 'react';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardAction } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardAction } from "@/components/ui/Card";
 import { cn } from "@/lib/utils";
 
 interface IslandPanelProps {
