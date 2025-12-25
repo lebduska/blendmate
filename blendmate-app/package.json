@@ -8,7 +8,10 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "tauri": "tauri",
-    "test": "echo \"Tests are disabled until refactor is complete.\""
+    "test": "echo \"Tests are disabled until refactor is complete.\"",
+    "storybook-dev": "storybook dev -p 6006",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build"
   },
   "dependencies": {
     "@fontsource/jetbrains-mono": "^5.2.8",
@@ -26,6 +29,11 @@
     "tailwind-merge": "^3.4.0"
   },
   "devDependencies": {
+    "@storybook/react-vite": "^7.6.21",
+    "@storybook/addon-essentials": "^7.6.21",
+    "@storybook/addon-a11y": "^7.6.21",
+    "storybook-dark-mode": "^1.1.2",
+    "vite-tsconfig-paths": "^4.0.0",
     "@tailwindcss/postcss": "^4.1.18",
     "@tailwindcss/typography": "^0.5.19",
     "@tailwindcss/vite": "^4.1.18",
