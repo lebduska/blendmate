@@ -1,5 +1,3 @@
-import React from "react";
-
 export function CenterWorkspace() {
   return (
     <div className="flex h-full w-full flex-col">

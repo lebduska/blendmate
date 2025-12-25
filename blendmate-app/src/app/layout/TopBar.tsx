@@ -1,4 +1,3 @@
-import React from "react";
 import type { SocketStatus } from "../AppShell";
 
 export type TopBarProps = {
