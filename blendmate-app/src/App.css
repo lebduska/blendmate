@@ -1,0 +1,65 @@
+/* App.css
+   Styles for resizable separators/handles.
+   - Použije se selektor [data-slot="resizable-handle"] tak, aby nevyžadoval úpravu komponent.
+   - Obsahuje fallback cursor, orientační pravidla pro vertical/horizontal a touch-action.
+   - Po otestování můžete odstranit debug background-color a upravit barvy podle designu.
+*/
+
+/* Základní hit-area a chování */
+[data-slot="resizable-handle"] {
+  touch-action: none; /* zabrání scrollování při dotyku */
+  cursor: ew-resize; /* fallback pro horizontální rozložení */
+  pointer-events: auto;
+  position: relative; /* pro pseudo-element */
+  z-index: 9999; /* vysoké z-index, aby nebyl překryt */
+  width: 8px; /* větší hit-area */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color .12s ease;
+}
+
+/* vertikální orientace (separator vodorovný, ovládá výšku panelů) */
+[data-slot="resizable-handle"][data-orientation="vertical"] {
+  cursor: ns-resize; /* vertikální resize */
+  height: 8px;
+  width: 100%;
+}
+
+/* explicitní fallback cursory pro starší prohlížeče */
+[data-slot="resizable-handle"][data-orientation="horizontal"] {
+  cursor: ew-resize;
+}
+
+/* pokud používáte "withHandle" v komponentě a vkládá vnitřní div, zajistěte, aby nebyl pointer-interactive */
+[data-slot="resizable-handle"] > div {
+  pointer-events: none;
+}
+
+/* Hide focus by default on separators (we'll show it only for keyboard users) */
+[data-slot="resizable-handle"]:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Show focus only when user is keyboard-tabbing (class added to <html>) */
+.user-is-tabbing [data-slot="resizable-handle"]:focus,
+.user-is-tabbing [data-slot="resizable-handle"] > *:focus {
+  outline: 2px solid rgba(99,102,241,0.9); /* indigo */
+  box-shadow: 0 0 0 4px rgba(99,102,241,0.12);
+}
+
+.cool-resizable-handle, .cool-resizable-handle:hover{
+  cursor: ew-resize !important;
+}
+
+/* Ensure cursor updates immediately on hover for both orientations */
+[data-slot="resizable-handle"]:hover {
+  cursor: ew-resize; /* horizontal default */
+}
+
+[data-slot="resizable-handle"][data-orientation="vertical"]:hover {
+  cursor: ns-resize; /* vertical */
+}
+
+/* debug styles removed */

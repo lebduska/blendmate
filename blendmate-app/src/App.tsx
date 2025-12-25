@@ -1,68 +1,113 @@
 import { useState, useEffect } from "react";
 import { useBlendmateSocket } from "./useBlendmateSocket";
-import { usePanelManager } from "./usePanelManager";
-import { LoggedEvent } from "./types/panels";
-import HUD from "./components/layout/HUD";
-import Footer from "./components/layout/Footer";
-import SandboxLayout from "./components/layout/SandboxLayout";
+import { Card } from "@/components/ui/card";
+import {BackgroundPaths} from "@/components/ui/BackgroundPaths";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import Outliner from "./components/Outliner";
+import NodeHelpView from "./components/NodeHelpView";
+import EventsLogPanel from "./components/panels/EventsLogPanel";
+import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
+import { Activity, LayoutGrid, Info, ListTree } from "lucide-react";
+
+// Color tokens (increased opacity for debug visibility)
 
 export default function App() {
-  const { status, lastMessage, sendJson } = useBlendmateSocket();
-  const { panelStates, togglePanel, visiblePanels } = usePanelManager();
-  
-  const [frame, setFrame] = useState(1);
-  const [currentNodeId, setCurrentNodeId] = useState('GeometryNodeInstanceOnPoints');
-  const [events, setEvents] = useState<LoggedEvent[]>([]);
+  const { lastMessage, status } = useBlendmateSocket();
+  const [currentNodeId, setCurrentNodeId] = useState<string>('GeometryNodeInstanceOnPoints');
 
-  // React to incoming context messages from Blender
-  // Rule 1 (UI_RULES.md): No auto-opening panels on events
+  const wsColor = status === 'connected' ? 'bg-emerald-500 animate-pulse' : 'bg-orange-500';
+  const wsLabel = status === 'connected' ? 'connected' : 'disconnected';
+
   useEffect(() => {
     if (lastMessage) {
-      // Add to events log with size limit to prevent memory issues
-      setEvents((prev: LoggedEvent[]) => {
-        const newEvents = [...prev, { 
-          type: lastMessage.type as string, 
-          timestamp: Date.now(), 
-          data: lastMessage 
-        }];
-        // Keep only last 100 events
-        return newEvents.slice(-100);
-      });
-
-      if (lastMessage.type === 'context' && lastMessage.node_id) {
-        setCurrentNodeId(lastMessage.node_id as string);
-        // Quiet companion rule: do not auto-open or focus panels on context changes
-      } else if (lastMessage.type === 'event' && lastMessage.event === 'frame_change') {
-        setFrame(lastMessage.frame as number);
+      if ((lastMessage as any).type === 'context' && (lastMessage as any).node_id) {
+        setCurrentNodeId((lastMessage as any).node_id as string);
       }
     }
-  }, [lastMessage, togglePanel]);
+  }, [lastMessage]);
 
   return (
-    <main className="flex flex-col h-screen overflow-hidden bg-blendmate-dark text-white font-sans selection:bg-blendmate-blue/30">
-      <HUD
-        status={status} 
-        panelStates={panelStates}
-        onPanelToggle={togglePanel}
+    <div className="relative flex flex-col h-screen text-foreground overflow-hidden font-sans">
+      {/* Base background layer */}
+      <div className="absolute inset-0 -z-20 bg-background" aria-hidden />
+      <BackgroundPaths
       />
+      {/* App content (stack above beams) */}
+      <div className="relative flex-1">
+        <main className="flex-1 min-h-0 min-w-0 flex flex-col h-full overflow-hidden p-1.5">
+          <ResizablePanelGroup orientation="horizontal" className="flex-1">
+            {/* Left Island: Outliner + Events */}
+            <ResizablePanel defaultSize={100} minSize={100} maxSize={500}>
+              <div className="flex flex-col h-full gap-2">
+                <Card className="flex-1 flex flex-col overflow-hidden shadow-none bg-card/65 backdrop-blur-md border-muted/20 py-2 gap-0">
+                  <div className="h-8 px-4 border-b flex items-center gap-2 bg-muted/10 shrink-0">
+                    <ListTree className="size-3.5 text-primary/70" />
+                    <span className="text-[9px] font-semibold uppercase tracking-normal opacity-60">Outliner</span>
+                  </div>
+                  <ScrollArea className="flex-1 p-2">
+                    <Outliner currentNodeId={currentNodeId} setCurrentNodeId={setCurrentNodeId} />
+                  </ScrollArea>
+                </Card>
 
-      {/* Use sandbox layout for interactive UI exploration */}
-      <SandboxLayout
-        visiblePanels={visiblePanels}
-        currentNodeId={currentNodeId}
-        setCurrentNodeId={setCurrentNodeId}
-        events={events}
-        frame={frame}
-      />
+                <Card className="h-48 flex flex-col overflow-hidden shadow-none bg-card/65 backdrop-blur-md border-muted/20 py-2 gap-0 shrink-0">
+                  <EventsLogPanel isVisible={true} isFocused={false} />
+                </Card>
+              </div>
+            </ResizablePanel>
 
-      <Footer lastMessage={lastMessage} sendJson={sendJson} />
+            <ResizableHandle withHandle className="bg-transparent cool-resizable-handle" />
 
-      <style>{`
-        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.05); border-radius: 10px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(61,148,255,0.3); }
-      `}</style>
-    </main>
+            {/* Center Island: Bench */}
+            <ResizablePanel defaultSize={400} minSize={20}>
+              <Card className="h-full flex flex-col overflow-hidden shadow-none bg-card/65 backdrop-blur-md border-muted/20 py-2 gap-0">
+                <div className="h-8 px-4 border-b flex items-center justify-between bg-muted/10 shrink-0">
+                  <div className="flex items-center gap-2">
+                    <LayoutGrid className="size-3.5 text-primary/70" />
+                    <span className="text-[9px] font-semibold uppercase tracking-normal opacity-60">Bench</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-1.5 border-l border-white/10 pl-3">
+                       <div className={`size-1.5 rounded-full ${wsColor}`} aria-hidden="true" />
+                       <span className="text-[9px] font-semibold uppercase tracking-normal opacity-40">
+                         {wsLabel}
+                       </span>
+                     </div>
+                  </div>
+                </div>
+
+                <div className="flex-1" aria-hidden="true" />
+              </Card>
+            </ResizablePanel>
+
+            <ResizableHandle withHandle className="bg-transparent cool-resizable-handle" />
+
+            {/* Right Island: Context Container */}
+            <ResizablePanel defaultSize={400} minSize={300} maxSize={800}>
+              <Card className="h-full flex flex-col overflow-hidden shadow-none bg-card/65 backdrop-blur-md border-muted/20 py-2 gap-0">
+                <div className="h-8 px-4 border-b flex items-center gap-2 bg-muted/10 shrink-0">
+                  <Info className="size-3.5 text-primary/70" />
+                  <span className="text-[9px] font-semibold uppercase tracking-normal opacity-60">Context</span>
+                </div>
+                <ScrollArea className="flex-1 p-4">
+                   <NodeHelpView nodeId={currentNodeId} />
+                </ScrollArea>
+              </Card>
+            </ResizablePanel>
+
+          </ResizablePanelGroup>
+        </main>
+      </div>
+
+      {/* Mini Footer / Status */}
+      <footer className="h-8 px-4 border-t flex items-center justify-between text-[10px] bg-card/30 backdrop-blur-xl">
+        <div className="flex items-center gap-4 opacity-50 font-medium">
+          <span>BLENDMATE v0.1.0</span>
+          <span className="flex items-center gap-1">
+            <Activity className="size-3 text-emerald-500" />
+            60 FPS
+          </span>
+        </div>
+      </footer>
+    </div>
   );
 }
