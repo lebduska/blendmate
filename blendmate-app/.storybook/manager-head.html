@@ -1,0 +1,27 @@
+<script>
+// Ensure Storybook manager (the main UI) has 'dark' class on root element
+(function () {
+  try {
+    if (typeof document !== 'undefined') {
+      document.documentElement.classList.add('dark');
+    }
+  } catch (e) {}
+})();
+</script>
+
+<style>
+/* Apply dark background/colors to docs area in manager UI */
+.sbdocs, .sbdocs-wrapper, .docs, .docs-story, .docs-root, .docblock, .sbdocs * {
+  background-color: #0b0d0f !important;
+  color: #dbeafe !important;
+}
+.docs .props-table td, .docs .props-table th, .sbdocs .props-table td, .sbdocs .props-table th {
+  background: transparent !important;
+  color: inherit !important;
+}
+.sbdocs pre, .sbdocs code, .docs pre, .docs code {
+  background: #07121a !important;
+  color: #dbeafe !important;
+}
+</style>
+
