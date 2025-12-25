@@ -74,21 +74,9 @@ export default function Outliner({
         <button
           onClick={() => (hasChildren ? toggle(node.id) : onSelect(node.id))}
           onDoubleClick={() => onSelect(node.id)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault();
-              onSelect(node.id);
-            } else if (e.key === 'ArrowRight' && hasChildren) {
-              e.preventDefault();
-              setExpandedMap((p) => ({ ...p, [node.id]: true }));
-            } else if (e.key === 'ArrowLeft' && hasChildren) {
-              e.preventDefault();
-              setExpandedMap((p) => ({ ...p, [node.id]: false }));
-            }
-          }}
           className={cn(
-            "w-full text-left flex items-center gap-2 px-2 py-1.5 rounded-md transition-all group focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/50",
-            selected ? "bg-primary/10 text-primary shadow-sm" : "hover:bg-muted/50 text-muted-foreground hover:text-foreground"
+            "w-full text-left flex items-center gap-2 px-2 py-1.5 rounded-lg transition-all group focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/50",
+            selected ? "bg-primary text-primary-foreground shadow-md" : "hover:bg-muted/50 text-muted-foreground hover:text-foreground"
           )}
           style={{ paddingLeft: 4 + depth * 12 }}
         >

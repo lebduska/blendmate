@@ -1,9 +1,7 @@
-import { PanelProps } from '../../types/panels';
+import { PanelProps } from '@/types/panels.ts';
 
 export default function StatsPanel(_props: PanelProps) {
   return (
-    <div className="bg-white/5 rounded-2xl p-8 text-center italic opacity-30">
-      Stats panel coming soon...
-    </div>
+    <div className="p-4 text-sm text-muted-foreground">Stats panel is a placeholder.</div>
   );
 }

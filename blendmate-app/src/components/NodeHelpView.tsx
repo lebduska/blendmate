@@ -5,7 +5,6 @@ import { loadNodeHelp } from "../services/kbLoader";
 import ImagePlaceholder from "./ui/ImagePlaceholder";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Card } from "@/components/ui/card";
 import { Sparkles, Info, Tag } from "lucide-react";
 
 interface NodeHelpViewProps {
@@ -41,7 +40,7 @@ export default function NodeHelpView({ nodeId }: NodeHelpViewProps) {
 
   if (loading) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-6 mono-panel">
         <div className="flex items-center gap-4">
           <Skeleton className="size-12 rounded-xl" />
           <div className="space-y-2 flex-1">
@@ -57,7 +56,7 @@ export default function NodeHelpView({ nodeId }: NodeHelpViewProps) {
 
   if (error || !entry) {
     return (
-      <div className="text-center py-8">
+      <div className="text-center py-8 mono-panel">
         <div className="size-12 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
           <Sparkles className="size-6 text-muted-foreground/50" />
         </div>
@@ -72,12 +71,12 @@ export default function NodeHelpView({ nodeId }: NodeHelpViewProps) {
   const previewUrl = (entry as any)?.previewUrl ?? (entry.meta as any)?.previewUrl ?? null;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 mono-panel">
       {/* Header */}
       <div className="flex flex-col gap-3">
         <div className="flex items-start justify-between gap-2">
            <div className="space-y-1">
-             <h2 className="text-2xl font-bold tracking-tight text-foreground">
+             <h2 className="text-lg font-medium tracking-tight text-foreground mono-heading">
                {entry.meta?.name ?? nodeId}
              </h2>
              <Badge variant="secondary" className="font-semibold text-[10px] uppercase tracking-wider">
@@ -91,14 +90,12 @@ export default function NodeHelpView({ nodeId }: NodeHelpViewProps) {
       </div>
 
       {/* Description / Markdown */}
-      <Card className="p-4 bg-muted/20 border-none shadow-none">
-        <div className="prose prose-invert max-w-none text-sm
-          prose-headings:text-primary prose-headings:font-bold prose-headings:mt-4 first:prose-headings:mt-0
-          prose-p:text-muted-foreground prose-p:leading-relaxed prose-strong:text-foreground
-        ">
-          <ReactMarkdown>{descriptionMarkdown}</ReactMarkdown>
-        </div>
-      </Card>
+      <div className="prose prose-invert max-w-none text-xs
+        prose-headings:text-primary prose-headings:font-bold prose-headings:mt-4 first:prose-headings:mt-0
+        prose-p:text-muted-foreground prose-p:leading-relaxed prose-strong:text-foreground
+      ">
+        <ReactMarkdown>{descriptionMarkdown}</ReactMarkdown>
+      </div>
 
       {/* Visual Preview */}
       <div className="relative rounded-xl border overflow-hidden group aspect-video bg-muted/50">
