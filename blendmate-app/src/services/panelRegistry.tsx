@@ -31,9 +31,9 @@ export const PANEL_REGISTRY: Record<PanelId, PanelDefinition> = {
     id: 'events-log',
     title: 'Events Log',
     icon: '📋',
-    defaultPlacement: 'main',
+    defaultPlacement: 'sidebar',
     component: EventsLogPanel as ComponentType<PanelProps>,
-    defaultVisible: false,
+    defaultVisible: true,
   },
   'chat': {
     id: 'chat',
