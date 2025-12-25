@@ -34,12 +34,3 @@ export interface PanelState {
   isFocused: boolean;
   placement: PanelPlacement;
 }
-
-/**
- * Represents a logged event from WebSocket
- */
-export interface LoggedEvent {
-  type: string;
-  timestamp: number;
-  data: unknown;
-}

@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { TopBar } from "./layout/TopBar";
 import { CenterWorkspace } from "./layout/CenterWorkspace";
 import { RightInspector } from "./layout/RightInspector";

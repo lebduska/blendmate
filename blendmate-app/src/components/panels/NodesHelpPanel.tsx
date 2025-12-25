@@ -1,31 +1,12 @@
-import { PanelProps } from '../../types/panels';
+import { PanelProps } from '@/types/panels.ts';
 import NodeHelpView from '../NodeHelpView';
 
-interface NodesHelpPanelProps extends PanelProps {
-  currentNodeId: string;
-  onNodeIdChange: (nodeId: string) => void;
-}
-
-export default function NodesHelpPanel({ currentNodeId, onNodeIdChange }: NodesHelpPanelProps) {
+export default function NodesHelpPanel(props: PanelProps) {
+  // Accept optional nodeId prop, fallback to default
+  const nodeId = (props as any).currentNodeId ?? 'GeometryNodeInstanceOnPoints';
   return (
-    <div className="space-y-4">
-      {/* Node switcher pills */}
-      <div className="flex gap-2 mb-4 overflow-x-auto pb-2 no-scrollbar">
-        {['GeometryNodeInstanceOnPoints', 'GeometryNodeCombineXYZ', 'GeometryNodeSeparateXYZ', 'Unknown'].map(id => (
-          <button 
-            key={id}
-            onClick={() => onNodeIdChange(id)}
-            className={`px-3 py-1 rounded-full text-[9px] font-bold uppercase whitespace-nowrap transition-all ${
-              currentNodeId === id ? 'bg-blendmate-orange text-black' : 'bg-white/5 text-white/40 hover:bg-white/10'
-            }`}
-          >
-            {id.replace('GeometryNode', '')}
-          </button>
-        ))}
-      </div>
-
-      {/* Node help content */}
-      <NodeHelpView nodeId={currentNodeId} />
+    <div className="p-4">
+      <NodeHelpView nodeId={nodeId} />
     </div>
   );
 }

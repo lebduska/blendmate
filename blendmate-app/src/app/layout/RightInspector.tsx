@@ -1,5 +1,3 @@
-import React from "react";
-
 export function RightInspector() {
   return (
     <div className="h-full w-full p-3">
