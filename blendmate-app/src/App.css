@@ -12,6 +12,66 @@
  * =============================================================================
  */
 
+/* =============================================================================
+ * CUSTOM TITLEBAR (IDEA-style with native traffic lights)
+ * Uses titleBarStyle: "overlay" in tauri.conf.json
+ * =============================================================================
+ */
+
+[data-tauri-drag-region] {
+  -webkit-app-region: drag;
+}
+
+/* Prevent drag on interactive elements */
+[data-tauri-drag-region] button,
+[data-tauri-drag-region] a,
+[data-tauri-drag-region] input {
+  -webkit-app-region: no-drag;
+}
+
+/* =============================================================================
+ * CUSTOM WINDOW CONTROLS (IDEA-style)
+ * Dormant (gray) by default, colored on hover
+ * =============================================================================
+ */
+
+.window-control {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--islands-duration-fast) var(--islands-easing-ease-out);
+  background: var(--islands-color-background-tertiary);
+  color: transparent;
+}
+
+/* Show icon on hover */
+.window-control:hover {
+  color: var(--islands-color-text-inverted);
+}
+
+.window-control--close:hover {
+  background: #ff5f57;
+}
+
+.window-control--minimize:hover {
+  background: #febc2e;
+}
+
+.window-control--maximize:hover {
+  background: #28c840;
+}
+
+/* Group hover - show all controls when hovering the group */
+.window-control:has(~ .window-control:hover),
+.window-control:hover ~ .window-control {
+  background: var(--islands-color-background-elevated);
+}
+
 [data-slot="resizable-handle"]:focus {
   outline: none;
 }

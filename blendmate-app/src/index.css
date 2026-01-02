@@ -211,9 +211,15 @@
   * {
     @apply border-border outline-ring/50;
   }
+  html {
+    overflow: hidden;
+    background: transparent;
+  }
   body {
-    @apply bg-background text-foreground antialiased;
+    @apply text-foreground antialiased;
     font-family: var(--font-sans);
+    overflow: hidden;
+    background: transparent;
   }
 }
 

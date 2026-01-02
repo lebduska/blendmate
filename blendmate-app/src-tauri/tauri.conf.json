@@ -10,11 +10,14 @@
     "frontendDist": "../dist"
   },
   "app": {
+    "macOSPrivateApi": true,
     "windows": [
       {
-        "title": "blendmate-app",
-        "width": 800,
-        "height": 600
+        "title": "Blendmate",
+        "width": 1200,
+        "height": 800,
+        "decorations": false,
+        "transparent": true
       }
     ],
     "security": {
