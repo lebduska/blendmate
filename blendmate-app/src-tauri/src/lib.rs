@@ -1,17 +1,37 @@
-use futures_util::StreamExt;
+use futures_util::{SinkExt, StreamExt};
+use std::sync::Arc;
 use tokio::net::TcpListener;
-use tokio_tungstenite::{accept_async, tungstenite::Message};
-use tauri::{Emitter, Manager};
+use tokio::sync::Mutex;
+use tokio_tungstenite::{accept_async, tungstenite::Message, WebSocketStream};
+use tauri::{Emitter, State};
 
-// Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-#[tauri::command]
-fn greet(name: &str) -> String {
-    format!("Hello, {}! You've been greeted from Rust!", name)
+type WsConnection = Arc<Mutex<Option<futures_util::stream::SplitSink<WebSocketStream<tokio::net::TcpStream>, Message>>>>;
+
+struct AppState {
+    ws_sender: WsConnection,
 }
 
 const WS_ADDRESS: &str = "127.0.0.1:32123";
 
-fn start_websocket_server<R: tauri::Runtime>(app_handle: tauri::AppHandle<R>) {
+/// Send a message to Blender addon via WebSocket
+#[tauri::command]
+async fn send_to_blender(message: String, state: State<'_, AppState>) -> Result<(), String> {
+    let mut sender_guard = state.ws_sender.lock().await;
+    if let Some(sender) = sender_guard.as_mut() {
+        sender
+            .send(Message::Text(message))
+            .await
+            .map_err(|e| format!("Failed to send: {}", e))?;
+        Ok(())
+    } else {
+        Err("No WebSocket connection".to_string())
+    }
+}
+
+fn start_websocket_server<R: tauri::Runtime>(
+    app_handle: tauri::AppHandle<R>,
+    ws_sender: WsConnection,
+) {
     tauri::async_runtime::spawn(async move {
         let listener = match TcpListener::bind(WS_ADDRESS).await {
             Ok(listener) => listener,
@@ -31,50 +51,52 @@ fn start_websocket_server<R: tauri::Runtime>(app_handle: tauri::AppHandle<R>) {
             };
 
             let app_handle = app_handle.clone();
+            let ws_sender = ws_sender.clone();
 
             tauri::async_runtime::spawn(async move {
                 match accept_async(stream).await {
-                    Ok(mut websocket) => {
+                    Ok(websocket) => {
+                        let (sender, mut receiver) = websocket.split();
+
+                        // Store sender for outgoing messages
+                        {
+                            let mut sender_guard = ws_sender.lock().await;
+                            *sender_guard = Some(sender);
+                        }
+
                         if let Err(err) = app_handle.emit("ws:status", "connected") {
                             eprintln!("Failed to emit ws:status connected: {err}");
                         }
 
-                        let mut disconnected_emitted = false;
-                        let mut emit_disconnected = |disconnected_emitted: &mut bool| {
-                            if *disconnected_emitted {
-                                return;
-                            }
-
-                            if let Err(err) = app_handle.emit("ws:status", "disconnected") {
-                                eprintln!("Failed to emit ws:status disconnected: {err}");
-                            }
-
-                            *disconnected_emitted = true;
-                        };
-
-                        while let Some(message_result) = websocket.next().await {
+                        // Read incoming messages
+                        while let Some(message_result) = receiver.next().await {
                             match message_result {
                                 Ok(Message::Text(text)) => {
                                     if let Err(err) = app_handle.emit("ws:message", text) {
                                         eprintln!("Failed to emit ws:message: {err}");
-                                        emit_disconnected(&mut disconnected_emitted);
                                         break;
                                     }
                                 }
                                 Ok(Message::Close(_)) => {
-                                    emit_disconnected(&mut disconnected_emitted);
                                     break;
                                 }
                                 Ok(_) => {}
                                 Err(err) => {
                                     eprintln!("WebSocket read error: {err}");
-                                    emit_disconnected(&mut disconnected_emitted);
                                     break;
                                 }
                             }
                         }
 
-                        emit_disconnected(&mut disconnected_emitted);
+                        // Clear sender on disconnect
+                        {
+                            let mut sender_guard = ws_sender.lock().await;
+                            *sender_guard = None;
+                        }
+
+                        if let Err(err) = app_handle.emit("ws:status", "disconnected") {
+                            eprintln!("Failed to emit ws:status disconnected: {err}");
+                        }
                     }
                     Err(err) => {
                         eprintln!("WebSocket handshake error: {err}");
@@ -91,13 +113,18 @@ fn start_websocket_server<R: tauri::Runtime>(app_handle: tauri::AppHandle<R>) {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    let ws_sender: WsConnection = Arc::new(Mutex::new(None));
+
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
-        .setup(|app| {
-            start_websocket_server(app.handle().clone());
+        .manage(AppState {
+            ws_sender: ws_sender.clone(),
+        })
+        .setup(move |app| {
+            start_websocket_server(app.handle().clone(), ws_sender.clone());
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![greet])
+        .invoke_handler(tauri::generate_handler![send_to_blender])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

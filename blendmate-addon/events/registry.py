@@ -82,11 +82,23 @@ def _unregister_app_handlers():
 
 def _register_timers():
     """Register all timers."""
-    # Register the message queue processing timer
+    # Register the message queue processing timer (outgoing)
     if not bpy.app.timers.is_registered(connection.process_queue):
         bpy.app.timers.register(connection.process_queue, first_interval=0.1)
         _registered_timers.append(connection.process_queue)
         connection.info("  Registered timer: process_queue")
+
+    # Register the request processing timer (incoming)
+    if not bpy.app.timers.is_registered(connection.process_pending_requests):
+        bpy.app.timers.register(connection.process_pending_requests, first_interval=0.1)
+        _registered_timers.append(connection.process_pending_requests)
+        connection.info("  Registered timer: process_pending_requests")
+
+    # Register heartbeat timer
+    if not bpy.app.timers.is_registered(connection.send_heartbeat):
+        bpy.app.timers.register(connection.send_heartbeat, first_interval=2.0)
+        _registered_timers.append(connection.send_heartbeat)
+        connection.info("  Registered timer: send_heartbeat")
 
 def _unregister_timers():
     """Unregister all tracked timers."""

@@ -1,77 +1,108 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { PanelProps } from '../../types/panels';
 import { useBlendmateSocket } from '../../useBlendmateSocket';
-import { Badge } from '@/components/ui/badge';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Button } from '@/components/ui/button';
-import { ListTree } from 'lucide-react';
+
+type LogLine = {
+  timestamp: number;
+  time: string;
+  data: unknown;
+};
+
+// Syntax highlight JSON
+function JsonSyntax({ data }: { data: unknown }) {
+  const json = JSON.stringify(data, null, 2);
+
+  // Colorize JSON parts
+  const highlighted = json
+    .replace(/"([^"]+)":/g, '<span class="text-purple-400">"$1"</span>:') // keys
+    .replace(/: "([^"]*)"/g, ': <span class="text-amber-300">"$1"</span>') // string values
+    .replace(/: (\d+\.?\d*)/g, ': <span class="text-cyan-400">$1</span>') // numbers
+    .replace(/: (true|false)/g, ': <span class="text-pink-400">$1</span>') // booleans
+    .replace(/: (null)/g, ': <span class="text-gray-500">$1</span>'); // null
+
+  return (
+    <pre
+      className="whitespace-pre-wrap break-all text-green-300/80"
+      dangerouslySetInnerHTML={{ __html: highlighted }}
+    />
+  );
+}
 
 export default function EventsLogPanel(_props: PanelProps) {
-  const { lastMessage, status } = useBlendmateSocket();
-  const [events, setEvents] = useState<Array<{ type: string; timestamp: number; data: unknown }>>([]);
+  const { lastMessage } = useBlendmateSocket();
+  const [lines, setLines] = useState<LogLine[]>([]);
+  const [autoScroll, setAutoScroll] = useState(true);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (lastMessage) {
-      setEvents((prev) => {
-        const next = [
-          ...prev,
-          {
-            type: (lastMessage as any).type as string || 'unknown',
-            timestamp: Date.now(),
-            data: lastMessage,
-          },
-        ];
-        return next.slice(-500);
-      });
+      // Skip heartbeat messages from log
+      if ((lastMessage as any).type === 'heartbeat') return;
+
+      const ts = new Date().toLocaleTimeString('cs-CZ', { hour12: false });
+      setLines((prev) => [...prev, { timestamp: Date.now(), time: ts, data: lastMessage }].slice(-500));
     }
   }, [lastMessage]);
 
-  const clear = () => setEvents([]);
+  // Auto-scroll to bottom only if enabled
+  useEffect(() => {
+    if (autoScroll) {
+      bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [lines, autoScroll]);
 
-  const statusColor = status === 'connected' ? 'bg-emerald-500' : status === 'connecting' ? 'bg-yellow-400' : 'bg-red-500';
+  // Detect manual scroll - disable auto-scroll when user scrolls up
+  const handleScroll = () => {
+    if (!containerRef.current) return;
+    const { scrollTop, scrollHeight, clientHeight } = containerRef.current;
+    const isAtBottom = scrollHeight - scrollTop - clientHeight < 50;
+    setAutoScroll(isAtBottom);
+  };
+
+  const scrollToBottom = () => {
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+    setAutoScroll(true);
+  };
+
+  const clearLog = () => setLines([]);
 
   return (
-    <div className="flex flex-col gap-2">
-      {/* Header matching Outliner (slightly lower) */}
-      <div className="h-7 px-4 border-b flex items-center justify-between bg-muted/10 shrink-0">
-        <div className="flex items-center gap-2">
-          <ListTree className="size-3.5 text-primary/70" />
-          <span className="text-[9px] font-semibold uppercase tracking-normal opacity-60">Events</span>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <div className={`size-2 rounded-full ${statusColor}`} aria-hidden="true" />
-        </div>
+    <div className="h-full flex flex-col bg-black/90">
+      {/* Toolbar */}
+      <div className="flex items-center gap-2 px-2 py-1 border-b border-green-900/50 shrink-0">
+        <span className="text-green-600 text-[10px]">{lines.length} lines</span>
+        <div className="flex-1" />
+        <button
+          onClick={scrollToBottom}
+          className={`px-2 py-0.5 text-[10px] rounded ${autoScroll ? 'bg-green-900/50 text-green-400' : 'bg-green-900/30 text-green-600 hover:bg-green-900/50'}`}
+        >
+          {autoScroll ? '↓ Auto' : '↓ Follow'}
+        </button>
+        <button
+          onClick={clearLog}
+          className="px-2 py-0.5 text-[10px] bg-red-900/30 text-red-400 hover:bg-red-900/50 rounded"
+        >
+          Clear
+        </button>
       </div>
 
-      <div className="border rounded overflow-hidden">
-        <ScrollArea className="h-56 p-2">
-          <div className="space-y-2">
-            {[...events].reverse().map((ev, idx) => (
-              <div key={idx} className="p-2 bg-card/60 rounded border border-muted/10">
-                <div className="flex items-center justify-between gap-2 mb-2">
-                  <div className="flex items-center gap-2">
-                    <span className="text-[11px] font-mono text-muted-foreground">{new Date(ev.timestamp).toLocaleTimeString()}</span>
-                    <Badge variant="secondary" className="text-[11px]">{ev.type}</Badge>
-                  </div>
-                </div>
-                <pre className="text-xs max-h-40 overflow-auto whitespace-pre-wrap text-[12px] bg-transparent m-0 p-1 font-mono">{JSON.stringify(ev.data, null, 2)}</pre>
-              </div>
-            ))}
-
-            {events.length === 0 && (
-              <div className="text-center text-sm text-muted-foreground py-8">No events yet — waiting for WebSocket messages...</div>
-            )}
+      {/* Log content */}
+      <div
+        ref={containerRef}
+        onScroll={handleScroll}
+        className="flex-1 font-mono text-xs p-2 overflow-auto"
+      >
+        {lines.length === 0 && (
+          <div className="text-green-600">$ waiting for events...</div>
+        )}
+        {lines.map((line, idx) => (
+          <div key={idx} className="mb-2 pb-2 border-b border-green-900/30">
+            <div className="text-green-600 text-[10px] mb-1">[{line.time}]</div>
+            <JsonSyntax data={line.data} />
           </div>
-        </ScrollArea>
-
-        {/* Footer with clear button and simple status */}
-        <div className="px-4 py-2 border-t flex items-center justify-between bg-muted/10">
-          <div className="text-xs text-muted-foreground">{events.length} events</div>
-          <div>
-            <Button variant="outline" size="sm" onClick={clear}>Clear</Button>
-          </div>
-        </div>
+        ))}
+        <div ref={bottomRef} />
       </div>
     </div>
   );
