@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "tauri": "tauri",
+    "tauri": "tauri dev",
     "test": "echo \"Tests are disabled until refactor is complete.\""
   },
   "dependencies": {
