@@ -1,65 +1,108 @@
-/* App.css
-   Styles for resizable separators/handles.
-   - Použije se selektor [data-slot="resizable-handle"] tak, aby nevyžadoval úpravu komponent.
-   - Obsahuje fallback cursor, orientační pravidla pro vertical/horizontal a touch-action.
-   - Po otestování můžete odstranit debug background-color a upravit barvy podle designu.
-*/
+/* =============================================================================
+ * App.css - Blendmate Application Styles
+ * Design System: Islands Dark UI (JetBrains-inspired)
+ * =============================================================================
+ */
 
-/* Základní hit-area a chování */
-[data-slot="resizable-handle"] {
-  touch-action: none; /* zabrání scrollování při dotyku */
-  cursor: ew-resize; /* fallback pro horizontální rozložení */
-  pointer-events: auto;
-  position: relative; /* pro pseudo-element */
-  z-index: 9999; /* vysoké z-index, aby nebyl překryt */
-  width: 8px; /* větší hit-area */
+/* =============================================================================
+ * RESIZABLE PANEL HANDLES
+ * - 24px hit zone with -10px margins = 4px visual gap
+ * - col-resize cursor (ew-resize not supported in WKWebView)
+ * - Wrapper div in resizable.tsx controls cursor; inner Separator handles drag
+ * =============================================================================
+ */
+
+[data-slot="resizable-handle"]:focus {
+  outline: none;
+}
+
+/* =============================================================================
+ * PANEL HEADER STYLES
+ * Blender-specific: uses #FF6A00 orange for branding
+ * =============================================================================
+ */
+
+.panel-header {
+  height: 32px;
+  padding: var(--islands-spacing-2) var(--islands-spacing-3); /* 8px 12px */
+  font-size: var(--islands-font-size-xs); /* 11px */
+  font-weight: var(--islands-font-weight-semibold); /* 600 */
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--islands-color-text-secondary);
+  background: var(--islands-color-background-tertiary);
+  border-bottom: var(--islands-border-default);
   display: flex;
   align-items: center;
-  justify-content: center;
-  transition: background-color .12s ease;
+  gap: var(--islands-spacing-2);
+  flex-shrink: 0;
 }
 
-/* vertikální orientace (separator vodorovný, ovládá výšku panelů) */
-[data-slot="resizable-handle"][data-orientation="vertical"] {
-  cursor: ns-resize; /* vertikální resize */
-  height: 8px;
-  width: 100%;
+.panel-header__icon {
+  width: 14px;
+  height: 14px;
+  color: #FF6A00; /* Blender orange */
 }
 
-/* explicitní fallback cursory pro starší prohlížeče */
-[data-slot="resizable-handle"][data-orientation="horizontal"] {
-  cursor: ew-resize;
+.panel-header__title {
+  font-size: var(--islands-font-size-xs);
+  font-weight: var(--islands-font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #FF6A00; /* Blender orange */
 }
 
-/* pokud používáte "withHandle" v komponentě a vkládá vnitřní div, zajistěte, aby nebyl pointer-interactive */
-[data-slot="resizable-handle"] > div {
-  pointer-events: none;
+/* =============================================================================
+ * CARD/ISLAND STYLES
+ * =============================================================================
+ */
+
+.island {
+  background: var(--islands-color-background-secondary);
+  border: 1px solid var(--islands-color-border-default);
+  border-radius: var(--islands-radius-md);
+  overflow: hidden;
 }
 
-/* Hide focus by default on separators (we'll show it only for keyboard users) */
-[data-slot="resizable-handle"]:focus {
-  outline: none !important;
-  box-shadow: none !important;
+.island--elevated {
+  background: var(--islands-color-background-elevated);
+  box-shadow: var(--islands-shadow-md);
 }
 
-/* Show focus only when user is keyboard-tabbing (class added to <html>) */
-.user-is-tabbing [data-slot="resizable-handle"]:focus,
-.user-is-tabbing [data-slot="resizable-handle"] > *:focus {
-  outline: 2px solid rgba(99,102,241,0.9); /* indigo */
-  box-shadow: 0 0 0 4px rgba(99,102,241,0.12);
+/* =============================================================================
+ * BUTTON STYLES
+ * =============================================================================
+ */
+
+.btn {
+  padding: var(--islands-spacing-1) var(--islands-spacing-2); /* 4px 8px */
+  font-size: var(--islands-font-size-xs);
+  font-weight: var(--islands-font-weight-medium);
+  border-radius: var(--islands-radius-sm);
+  transition: all var(--islands-duration-fast) var(--islands-easing-ease-out);
+  cursor: pointer;
+  border: none;
+  background: transparent;
 }
 
-.cool-resizable-handle, .cool-resizable-handle:hover{
-  cursor: ew-resize !important;
+.btn:hover {
+  background: var(--islands-color-background-tertiary);
 }
 
-/* Ensure cursor updates immediately on hover for both orientations */
-[data-slot="resizable-handle"]:hover {
-  cursor: ew-resize; /* horizontal default */
+.btn--primary {
+  background: color-mix(in srgb, var(--islands-color-brand-primary) 20%, transparent);
+  color: var(--islands-color-brand-secondary);
 }
 
-[data-slot="resizable-handle"][data-orientation="vertical"]:hover {
-  cursor: ns-resize; /* vertical */
+.btn--primary:hover {
+  background: color-mix(in srgb, var(--islands-color-brand-primary) 30%, transparent);
 }
 
-/* debug styles removed */
+.btn--danger {
+  background: color-mix(in srgb, var(--islands-color-error) 20%, transparent);
+  color: var(--islands-color-error);
+}
+
+.btn--danger:hover {
+  background: color-mix(in srgb, var(--islands-color-error) 30%, transparent);
+}

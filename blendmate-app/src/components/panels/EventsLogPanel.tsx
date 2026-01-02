@@ -8,21 +8,32 @@ type LogLine = {
   data: unknown;
 };
 
-// Syntax highlight JSON
+/**
+ * Syntax highlight JSON using Islands design tokens
+ *
+ * Color mapping:
+ * - Keys: brand-secondary (light blue) - draws attention to structure
+ * - Strings: warning (amber) - warm color for text values
+ * - Numbers: info (blue) - cool color for numeric data
+ * - Booleans: success (green) - positive/active feel
+ * - Null: text-disabled (grey) - de-emphasized
+ * - Default text: text-primary (light grey)
+ */
 function JsonSyntax({ data }: { data: unknown }) {
   const json = JSON.stringify(data, null, 2);
 
-  // Colorize JSON parts
+  // Colorize JSON using Islands token CSS variables
   const highlighted = json
-    .replace(/"([^"]+)":/g, '<span class="text-purple-400">"$1"</span>:') // keys
-    .replace(/: "([^"]*)"/g, ': <span class="text-amber-300">"$1"</span>') // string values
-    .replace(/: (\d+\.?\d*)/g, ': <span class="text-cyan-400">$1</span>') // numbers
-    .replace(/: (true|false)/g, ': <span class="text-pink-400">$1</span>') // booleans
-    .replace(/: (null)/g, ': <span class="text-gray-500">$1</span>'); // null
+    .replace(/"([^"]+)":/g, '<span style="color: var(--islands-color-brand-secondary)">"$1"</span>:') // keys
+    .replace(/: "([^"]*)"/g, ': <span style="color: var(--islands-color-warning)">"$1"</span>') // string values
+    .replace(/: (\d+\.?\d*)/g, ': <span style="color: var(--islands-color-info)">$1</span>') // numbers
+    .replace(/: (true|false)/g, ': <span style="color: var(--islands-color-success)">$1</span>') // booleans
+    .replace(/: (null)/g, ': <span style="color: var(--islands-color-text-disabled)">$1</span>'); // null
 
   return (
     <pre
-      className="whitespace-pre-wrap break-all text-green-300/80"
+      className="whitespace-pre-wrap break-all"
+      style={{ color: 'var(--islands-color-text-primary)' }}
       dangerouslySetInnerHTML={{ __html: highlighted }}
     />
   );
@@ -68,20 +79,43 @@ export default function EventsLogPanel(_props: PanelProps) {
   const clearLog = () => setLines([]);
 
   return (
-    <div className="h-full flex flex-col bg-black/90">
+    <div
+      className="h-full flex flex-col"
+      style={{ backgroundColor: 'var(--islands-color-background-primary)' }}
+    >
       {/* Toolbar */}
-      <div className="flex items-center gap-2 px-2 py-1 border-b border-green-900/50 shrink-0">
-        <span className="text-green-600 text-[10px]">{lines.length} lines</span>
+      <div
+        className="flex items-center gap-2 px-2 py-1 shrink-0"
+        style={{ borderBottom: '1px solid var(--islands-color-border-subtle)' }}
+      >
+        <span
+          className="text-[10px]"
+          style={{ color: 'var(--islands-color-text-secondary)' }}
+        >
+          {lines.length} lines
+        </span>
         <div className="flex-1" />
         <button
           onClick={scrollToBottom}
-          className={`px-2 py-0.5 text-[10px] rounded ${autoScroll ? 'bg-green-900/50 text-green-400' : 'bg-green-900/30 text-green-600 hover:bg-green-900/50'}`}
+          className="px-2 py-0.5 text-[10px] rounded transition-colors"
+          style={{
+            backgroundColor: autoScroll
+              ? 'color-mix(in srgb, var(--islands-color-brand-primary) 30%, transparent)'
+              : 'color-mix(in srgb, var(--islands-color-background-tertiary) 50%, transparent)',
+            color: autoScroll
+              ? 'var(--islands-color-brand-secondary)'
+              : 'var(--islands-color-text-secondary)',
+          }}
         >
           {autoScroll ? '↓ Auto' : '↓ Follow'}
         </button>
         <button
           onClick={clearLog}
-          className="px-2 py-0.5 text-[10px] bg-red-900/30 text-red-400 hover:bg-red-900/50 rounded"
+          className="px-2 py-0.5 text-[10px] rounded transition-colors hover:opacity-80"
+          style={{
+            backgroundColor: 'color-mix(in srgb, var(--islands-color-error) 20%, transparent)',
+            color: 'var(--islands-color-error)',
+          }}
         >
           Clear
         </button>
@@ -94,11 +128,22 @@ export default function EventsLogPanel(_props: PanelProps) {
         className="flex-1 font-mono text-xs p-2 overflow-auto"
       >
         {lines.length === 0 && (
-          <div className="text-green-600">$ waiting for events...</div>
+          <div style={{ color: 'var(--islands-color-text-secondary)' }}>
+            $ waiting for events...
+          </div>
         )}
         {lines.map((line, idx) => (
-          <div key={idx} className="mb-2 pb-2 border-b border-green-900/30">
-            <div className="text-green-600 text-[10px] mb-1">[{line.time}]</div>
+          <div
+            key={idx}
+            className="mb-2 pb-2"
+            style={{ borderBottom: '1px solid var(--islands-color-border-subtle)' }}
+          >
+            <div
+              className="text-[10px] mb-1"
+              style={{ color: 'var(--islands-color-text-secondary)' }}
+            >
+              [{line.time}]
+            </div>
             <JsonSyntax data={line.data} />
           </div>
         ))}

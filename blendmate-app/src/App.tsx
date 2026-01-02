@@ -4,7 +4,7 @@ import { Outliner, NodeHelpView } from "@/components";
 import { EventsLogPanel } from "@/components/panels";
 import { Activity, LayoutGrid, Info, ListTree } from "lucide-react";
 import BackgroundPaths from "@/components/ui/BackgroundPaths";
-import { ResizableHandle, ResizablePanel, ResizablePanelGroup, Card, ScrollArea } from "@/components/ui";
+import { ResizableHandle, ResizablePanel, ResizablePanelGroup, ScrollArea } from "@/components/ui";
 
 export default function App() {
   const { lastMessage, status, requestScene } = useBlendmateSocket();
@@ -43,79 +43,88 @@ export default function App() {
   }, []);
 
   const wsConnected = status === 'connected';
-  const wsColor = wsConnected && isAlive ? 'bg-emerald-500 animate-pulse' : wsConnected ? 'bg-amber-500' : 'bg-red-500';
+  // Status colors using Islands tokens
+  const wsColorVar = wsConnected && isAlive
+    ? 'var(--islands-color-success)'      // live - green
+    : wsConnected
+      ? 'var(--islands-color-warning)'    // connected - amber
+      : 'var(--islands-color-error)';     // disconnected - red
   const wsLabel = wsConnected && isAlive ? 'live' : wsConnected ? 'connected' : 'disconnected';
 
   return (
     <div className="relative flex flex-col h-screen text-foreground overflow-hidden font-sans">
       {/* Base background layer */}
       <div className="absolute inset-0 -z-20 bg-background" aria-hidden />
-      <BackgroundPaths
-      />
+      <BackgroundPaths />
       {/* App content (stack above beams) */}
       <div className="relative flex-1 min-h-0 overflow-hidden">
         <main className="h-full min-w-0 flex flex-col overflow-hidden p-1.5">
-          <ResizablePanelGroup orientation="horizontal" className="h-full">
+          <ResizablePanelGroup orientation="horizontal" disableCursor className="h-full">
             {/* Left Island: Outliner */}
             <ResizablePanel defaultSize={100} minSize={100} maxSize={500}>
-              <Card className="h-full flex flex-col overflow-hidden shadow-none bg-card/65 backdrop-blur-md border-muted/20 py-2 gap-0">
-                <div className="h-8 px-4 border-b flex items-center gap-2 bg-muted/10 shrink-0">
-                  <ListTree className="size-3.5 text-primary/70" />
-                  <span className="text-[9px] font-semibold uppercase tracking-normal opacity-60">Outliner</span>
+              <div className="island h-full flex flex-col">
+                <div className="panel-header">
+                  <ListTree className="panel-header__icon" />
+                  <span className="panel-header__title">Outliner</span>
                 </div>
                 <ScrollArea className="flex-1 p-2">
                   <Outliner currentNodeId={currentNodeId} setCurrentNodeId={setCurrentNodeId} />
                 </ScrollArea>
-              </Card>
+              </div>
             </ResizablePanel>
 
-            <ResizableHandle withHandle className="bg-transparent cool-resizable-handle" />
+            <ResizableHandle />
 
             {/* Center Island: Bench (Events Log) */}
             <ResizablePanel defaultSize={400} minSize={20}>
-              <Card className="h-full flex flex-col overflow-hidden shadow-none bg-card/65 backdrop-blur-md border-muted/20 py-2 gap-0">
-                <div className="h-8 px-4 border-b flex items-center justify-between bg-muted/10 shrink-0">
+              <div className="island h-full flex flex-col">
+                <div className="panel-header justify-between">
                   <div className="flex items-center gap-2">
-                    <LayoutGrid className="size-3.5 text-primary/70" />
-                    <span className="text-[9px] font-semibold uppercase tracking-normal opacity-60">Bench</span>
+                    <LayoutGrid className="panel-header__icon" />
+                    <span className="panel-header__title">Bench</span>
                     {status === 'connected' && (
                       <button
                         onClick={() => requestScene()}
-                        className="ml-2 px-2 py-0.5 text-[9px] bg-primary/20 hover:bg-primary/30 rounded"
+                        className="btn btn--primary ml-2"
                       >
                         Get Scene
                       </button>
                     )}
                   </div>
-                  <div className="flex items-center gap-3">
-                    <div className="flex items-center gap-1.5 border-l border-white/10 pl-3">
-                       <div className={`size-1.5 rounded-full ${wsColor}`} aria-hidden="true" />
-                       <span className="text-[9px] font-semibold uppercase tracking-normal opacity-40">
-                         {wsLabel}
-                       </span>
-                     </div>
+                  <div
+                    className="flex items-center gap-1.5 pl-3"
+                    style={{ borderLeft: '1px solid var(--islands-color-border-subtle)' }}
+                  >
+                    <div
+                      className={`size-1.5 rounded-full ${wsConnected && isAlive ? 'animate-pulse' : ''}`}
+                      style={{ backgroundColor: wsColorVar }}
+                      aria-hidden="true"
+                    />
+                    <span className="panel-header__title" style={{ opacity: 0.4 }}>
+                      {wsLabel}
+                    </span>
                   </div>
                 </div>
 
                 <div className="flex-1 min-h-0 overflow-hidden">
                   <EventsLogPanel isVisible={true} isFocused={false} />
                 </div>
-              </Card>
+              </div>
             </ResizablePanel>
 
-            <ResizableHandle withHandle className="bg-transparent cool-resizable-handle" />
+            <ResizableHandle />
 
             {/* Right Island: Context Container */}
             <ResizablePanel defaultSize={400} minSize={300} maxSize={800}>
-              <Card className="h-full flex flex-col overflow-hidden shadow-none bg-card/65 backdrop-blur-md border-muted/20 py-2 gap-0">
-                <div className="h-8 px-4 border-b flex items-center gap-2 bg-muted/10 shrink-0">
-                  <Info className="size-3.5 text-primary/70" />
-                  <span className="text-[9px] font-semibold uppercase tracking-normal opacity-60">Context</span>
+              <div className="island h-full flex flex-col">
+                <div className="panel-header">
+                  <Info className="panel-header__icon" />
+                  <span className="panel-header__title">Context</span>
                 </div>
                 <ScrollArea className="flex-1 p-4">
                    <NodeHelpView nodeId={currentNodeId} />
                 </ScrollArea>
-              </Card>
+              </div>
             </ResizablePanel>
 
           </ResizablePanelGroup>
@@ -127,7 +136,7 @@ export default function App() {
         <div className="flex items-center gap-4 opacity-50 font-medium">
           <span>BLENDMATE v0.1.0</span>
           <span className="flex items-center gap-1">
-            <Activity className="size-3 text-emerald-500" />
+            <Activity className="size-3" style={{ color: 'var(--islands-color-success)' }} />
             60 FPS
           </span>
         </div>

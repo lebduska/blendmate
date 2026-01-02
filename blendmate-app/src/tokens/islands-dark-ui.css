@@ -1,0 +1,237 @@
+/**
+ * islands-dark - CSS Custom Properties
+ * Generated from design tokens
+ * Total tokens: 85
+ */
+
+:root {
+
+  /* COLOR */
+  /* Main application background */
+  --islands-color-background-primary: #1e1f22;
+  /* Secondary background (panels, sidebars) */
+  --islands-color-background-secondary: #2b2d30;
+  /* Tertiary background (hover states) */
+  --islands-color-background-tertiary: #313438;
+  /* Elevated surfaces (modals, dropdowns) */
+  --islands-color-background-elevated: #3c3f41;
+  /* Primary text color */
+  --islands-color-text-primary: #bcbec4;
+  /* Secondary text (muted, hints) */
+  --islands-color-text-secondary: #868a91;
+  /* Disabled text */
+  --islands-color-text-disabled: #5d5e60;
+  /* Inverted text (on dark backgrounds) */
+  --islands-color-text-inverted: #ffffff;
+  /* Primary brand color (blue) */
+  --islands-color-brand-primary: #2f65ca;
+  /* Secondary brand color (lighter blue) */
+  --islands-color-brand-secondary: #4b9cd3;
+  /* Success state (green) */
+  --islands-color-success: #a8c023;
+  /* Warning state (amber) */
+  --islands-color-warning: #f0a000;
+  /* Error state (red) */
+  --islands-color-error: #ff6b68;
+  /* Info state (blue) */
+  --islands-color-info: #4b9cd3;
+  /* Default border color */
+  --islands-color-border-default: #3c3f41;
+  /* Subtle border (dividers) */
+  --islands-color-border-subtle: #2b2d30;
+  /* Focus ring color */
+  --islands-color-border-focus: #2f65ca;
+
+  /* SPACING */
+  /* No spacing */
+  --islands-spacing-0: 0px;
+  /* 0.5 unit (extra tight) */
+  --islands-spacing-1: 4px;
+  /* 1 unit (tight) */
+  --islands-spacing-2: 8px;
+  /* 1.5 units */
+  --islands-spacing-3: 12px;
+  /* 2 units (default) */
+  --islands-spacing-4: 16px;
+  /* 2.5 units */
+  --islands-spacing-5: 20px;
+  /* 3 units (comfortable) */
+  --islands-spacing-6: 24px;
+  /* 4 units (spacious) */
+  --islands-spacing-8: 32px;
+  /* 5 units */
+  --islands-spacing-10: 40px;
+  /* 6 units (very spacious) */
+  --islands-spacing-12: 48px;
+  /* 8 units (extra spacious) */
+  --islands-spacing-16: 64px;
+  /* 10 units */
+  --islands-spacing-20: 80px;
+  /* 12 units (section spacing) */
+  --islands-spacing-24: 96px;
+
+  /* RADIUS */
+  /* No border radius (sharp corners) */
+  --islands-radius-none: 0px;
+  /* Small radius (buttons, inputs) */
+  --islands-radius-sm: 4px;
+  /* Medium radius (cards, panels) */
+  --islands-radius-md: 8px;
+  /* Large radius (modals) */
+  --islands-radius-lg: 12px;
+  /* Extra large radius */
+  --islands-radius-xl: 16px;
+  /* Full radius (circles, pills) */
+  --islands-radius-full: 9999px;
+
+  /* SHADOW */
+  /* Small shadow (subtle elevation) */
+  --islands-shadow-sm: 0px 1px 2px 0px rgba(0, 0, 0, 0.1);
+  /* Medium shadow (cards, dropdowns) */
+  --islands-shadow-md: 0px 4px 8px 0px rgba(0, 0, 0, 0.15);
+  /* Large shadow (modals, popovers) */
+  --islands-shadow-lg: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+  /* Extra large shadow (overlays) */
+  --islands-shadow-xl: 0px 12px 24px 0px rgba(0, 0, 0, 0.25);
+  /* Inner shadow (inset inputs) */
+  --islands-shadow-inner: 0px 2px 4px 0px rgba(0, 0, 0, 0.1);
+
+  /* FONT */
+  /* Monospace font (code, terminal) */
+  --islands-font-family-mono: "JetBrains Mono", Menlo, Monaco, "Courier New", monospace;
+  /* Sans-serif font (UI text) */
+  --islands-font-family-sans: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  /* Extra small text (labels, captions) */
+  --islands-font-size-xs: 11px;
+  /* Small text (secondary info) */
+  --islands-font-size-sm: 13px;
+  /* Medium text (default body) */
+  --islands-font-size-md: 14px;
+  /* Large text (important info) */
+  --islands-font-size-lg: 16px;
+  /* Extra large text (subheadings) */
+  --islands-font-size-xl: 18px;
+  /* Heading level 3 */
+  --islands-font-size-2xl: 24px;
+  /* Heading level 2 */
+  --islands-font-size-3xl: 30px;
+  /* Heading level 1 */
+  --islands-font-size-4xl: 36px;
+  /* Regular weight */
+  --islands-font-weight-regular: 400;
+  /* Medium weight */
+  --islands-font-weight-medium: 500;
+  /* Semibold weight */
+  --islands-font-weight-semibold: 600;
+  /* Bold weight */
+  --islands-font-weight-bold: 700;
+  /* Tight line height (headings) */
+  --islands-font-lineheight-tight: 1.2;
+  /* Normal line height (body text) */
+  --islands-font-lineheight-normal: 1.5;
+  /* Relaxed line height (long-form text) */
+  --islands-font-lineheight-relaxed: 1.75;
+
+  /* BORDER */
+  /* Thin border */
+  --islands-border-width-thin: 1px;
+  /* Default border */
+  --islands-border-width-default: 2px;
+  /* Thick border (emphasis) */
+  --islands-border-width-thick: 4px;
+  /* Default border style */
+  --islands-border-default: 1px solid #3c3f41;
+  /* Focus border style */
+  --islands-border-focus: 2px solid #2f65ca;
+
+  /* DURATION */
+  /* No transition */
+  --islands-duration-instant: 0ms;
+  /* Fast transition (micro-interactions) */
+  --islands-duration-fast: 100ms;
+  /* Normal transition (default) */
+  --islands-duration-normal: 200ms;
+  /* Slow transition (emphasis) */
+  --islands-duration-slow: 300ms;
+  /* Slower transition (page transitions) */
+  --islands-duration-slower: 500ms;
+
+  /* EASING */
+  /* Linear easing */
+  --islands-easing-linear: cubic-bezier(0, 0, 1, 1);
+  /* Default ease */
+  --islands-easing-ease: cubic-bezier(0.25, 0.1, 0.25, 1);
+  /* Ease in (slow start) */
+  --islands-easing-ease-in: cubic-bezier(0.42, 0, 1, 1);
+  /* Ease out (slow end) */
+  --islands-easing-ease-out: cubic-bezier(0, 0, 0.58, 1);
+  /* Ease in-out (smooth both ends) */
+  --islands-easing-ease-in-out: cubic-bezier(0.42, 0, 0.58, 1);
+
+  /* TRANSITION */
+  /* Default transition (all properties) */
+  --islands-transition-default: 200ms cubic-bezier(0, 0, 0.58, 1) 0ms;
+  /* Fast transition */
+  --islands-transition-fast: 100ms cubic-bezier(0, 0, 0.58, 1) 0ms;
+
+  /* Z */
+  /* Base z-index */
+  --islands-z-index-base: 0;
+  /* Dropdown z-index */
+  --islands-z-index-dropdown: 1000;
+  /* Modal z-index */
+  --islands-z-index-modal: 2000;
+  /* Toast notification z-index */
+  --islands-z-index-toast: 3000;
+  /* Tooltip z-index */
+  --islands-z-index-tooltip: 4000;
+}
+
+/**
+ * Typography utility classes
+ */
+
+/* Heading 1 style */
+.typography-heading-h1 {
+  font-family: Inter, sans-serif;
+  font-size: 36px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+/* Heading 2 style */
+.typography-heading-h2 {
+  font-family: Inter, sans-serif;
+  font-size: 30px;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+
+/* Heading 3 style */
+.typography-heading-h3 {
+  font-family: Inter, sans-serif;
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: 0em;
+}
+
+/* Default body text style */
+.typography-body-default {
+  font-family: Inter, sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: 0em;
+}
+
+/* Code/monospace text style */
+.typography-code {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.6;
+  letter-spacing: 0em;
+}

@@ -1,56 +1,77 @@
 @import "tailwindcss";
+@import "./tokens/islands-dark-ui.css";
 @plugin "@tailwindcss/typography";
 
+/* =============================================================================
+ * BLENDMATE DESIGN TOKENS
+ * Source: Islands Dark UI (JetBrains IntelliJ theme)
+ *
+ * This file aliases Islands tokens to shadcn/Tailwind semantic variables.
+ * Islands tokens are the source of truth - changes should be made there.
+ * =============================================================================
+ */
+
 @theme {
-  --color-blendmate-dark: #0a0a0a;
-  --color-blendmate-gray: #1a1a1a;
-  --color-blendmate-orange: #ff9d5c;
-  --color-blendmate-blue: #3d94ff;
+  /* -------------------------------------------------------------------------
+   * LEGACY BLENDMATE COLORS (preserved for reference)
+   * TODO: Remove after full migration
+   * -------------------------------------------------------------------------
+   * --color-blendmate-dark: #0a0a0a;    → replaced by --islands-color-background-primary
+   * --color-blendmate-gray: #1a1a1a;    → replaced by --islands-color-background-secondary
+   * --color-blendmate-orange: #ff9d5c;  → replaced by --islands-color-warning
+   * --color-blendmate-blue: #3d94ff;    → replaced by --islands-color-brand-secondary
+   * -------------------------------------------------------------------------
+   */
 
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji",
-    "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  /* Fonts - aliased from Islands tokens */
+  --font-sans: var(--islands-font-family-sans);
+  --font-mono: var(--islands-font-family-mono);
 
-  --radius-lg: var(--radius);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-sm: calc(var(--radius) - 4px);
+  /* Radius - aliased from Islands tokens */
+  --radius-lg: var(--islands-radius-lg);
+  --radius-md: var(--islands-radius-md);
+  --radius-sm: var(--islands-radius-sm);
 
+  /* Semantic color aliases (Tailwind integration) */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
-
   --color-popover: var(--popover);
   --color-popover-foreground: var(--popover-foreground);
-
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
-
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
-
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
-
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
-
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
-
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
-
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
+
+  /* Status colors - direct Islands token access */
+  --color-success: var(--islands-color-success);
+  --color-warning: var(--islands-color-warning);
+  --color-error: var(--islands-color-error);
+  --color-info: var(--islands-color-info);
 }
 
 @layer base {
+  /* -------------------------------------------------------------------------
+   * LIGHT THEME (kept for reference, not actively used in Blendmate)
+   * -------------------------------------------------------------------------
+   */
   :root {
+    /* DIFF: Light theme preserved but not used - Blendmate is dark-only */
     --background: hsl(0 0% 100%);
     --foreground: hsl(0 0% 3.9%);
     --card: hsl(0 0% 100%);
@@ -76,36 +97,98 @@
     --chart-4: hsl(43 74% 66%);
     --chart-5: hsl(27 87% 67%);
     --radius: 0.4rem;
-
-    /* JetBrains Mono font token */
-    --font-mono: 'JetBrains Mono', monospace;
   }
 
+  /* -------------------------------------------------------------------------
+   * DARK THEME - Now powered by Islands tokens
+   *
+   * DIFF LEGEND:
+   *   OLD: previous HSL value
+   *   NEW: Islands token (hex value)
+   * -------------------------------------------------------------------------
+   */
   .dark {
-    --background: hsl(0 0% 7%);
-    --foreground: hsl(0 0% 98%);
-    --card: hsl(0 0% 12%);
-    --card-foreground: hsl(0 0% 98%);
-    --popover: hsl(0 0% 12%);
-    --popover-foreground: hsl(0 0% 98%);
-    --primary: hsl(24 100% 68%);
-    --primary-foreground: hsl(0 0% 9%);
-    --secondary: hsl(0 0% 15%);
-    --secondary-foreground: hsl(0 0% 98%);
-    --muted: hsl(0 0% 15%);
-    --muted-foreground: hsl(0 0% 65%);
-    --accent: hsl(0 0% 18%);
-    --accent-foreground: hsl(0 0% 98%);
-    --destructive: hsl(0 62.8% 30.6%);
-    --destructive-foreground: hsl(0 0% 98%);
-    --border: hsl(0 0% 18%);
-    --input: hsl(0 0% 18%);
-    --ring: hsl(24 100% 68% / 0.5);
-    --chart-1: hsl(220 70% 50%);
-    --chart-2: hsl(160 60% 45%);
-    --chart-3: hsl(30 80% 55%);
-    --chart-4: hsl(280 65% 60%);
-    --chart-5: hsl(340 75% 55%);
+    /* Background colors
+     * OLD: --background: hsl(0 0% 7%);                    → #121212
+     * NEW: --islands-color-background-primary             → #1e1f22 (slightly lighter, JetBrains style)
+     */
+    --background: var(--islands-color-background-primary);
+
+    /* Foreground (text) colors
+     * OLD: --foreground: hsl(0 0% 98%);                   → #fafafa (almost white)
+     * NEW: --islands-color-text-primary                   → #bcbec4 (softer, less eye strain)
+     */
+    --foreground: var(--islands-color-text-primary);
+
+    /* Card colors
+     * OLD: --card: hsl(0 0% 12%);                         → #1f1f1f
+     * NEW: --islands-color-background-secondary           → #2b2d30 (panel background)
+     */
+    --card: var(--islands-color-background-secondary);
+    --card-foreground: var(--islands-color-text-primary);
+
+    /* Popover (same as card for consistency) */
+    --popover: var(--islands-color-background-elevated);
+    --popover-foreground: var(--islands-color-text-primary);
+
+    /* Primary (brand) color
+     * OLD: --primary: hsl(24 100% 68%);                   → #ff9d5c (orange)
+     * NEW: --islands-color-brand-primary                  → #2f65ca (JetBrains blue)
+     * NOTE: This is a significant change from orange to blue!
+     */
+    --primary: var(--islands-color-brand-primary);
+    --primary-foreground: var(--islands-color-text-inverted);
+
+    /* Secondary colors
+     * OLD: --secondary: hsl(0 0% 15%);                    → #262626
+     * NEW: --islands-color-background-secondary           → #2b2d30
+     */
+    --secondary: var(--islands-color-background-secondary);
+    --secondary-foreground: var(--islands-color-text-primary);
+
+    /* Muted colors (subtle backgrounds, secondary text)
+     * OLD: --muted: hsl(0 0% 15%);                        → #262626
+     * NEW: --islands-color-background-tertiary            → #313438 (hover states)
+     *
+     * OLD: --muted-foreground: hsl(0 0% 65%);             → #a6a6a6
+     * NEW: --islands-color-text-secondary                 → #868a91 (slightly darker)
+     */
+    --muted: var(--islands-color-background-tertiary);
+    --muted-foreground: var(--islands-color-text-secondary);
+
+    /* Accent colors (hover, focus states)
+     * OLD: --accent: hsl(0 0% 18%);                       → #2e2e2e
+     * NEW: --islands-color-background-elevated            → #3c3f41 (modal/dropdown bg)
+     */
+    --accent: var(--islands-color-background-elevated);
+    --accent-foreground: var(--islands-color-text-primary);
+
+    /* Destructive (error) colors
+     * OLD: --destructive: hsl(0 62.8% 30.6%);             → #7f1d1d (dark red)
+     * NEW: --islands-color-error                          → #ff6b68 (brighter, more visible)
+     */
+    --destructive: var(--islands-color-error);
+    --destructive-foreground: var(--islands-color-text-inverted);
+
+    /* Border colors
+     * OLD: --border: hsl(0 0% 18%);                       → #2e2e2e
+     * NEW: --islands-color-border-default                 → #3c3f41
+     */
+    --border: var(--islands-color-border-default);
+    --input: var(--islands-color-border-default);
+
+    /* Focus ring
+     * OLD: --ring: hsl(24 100% 68% / 0.5);                → orange with opacity
+     * NEW: --islands-color-border-focus                   → #2f65ca (solid blue)
+     */
+    --ring: var(--islands-color-border-focus);
+
+    /* Chart colors - mapped to Islands semantic colors */
+    --chart-1: var(--islands-color-brand-primary);
+    --chart-2: var(--islands-color-success);
+    --chart-3: var(--islands-color-warning);
+    --chart-4: var(--islands-color-info);
+    --chart-5: var(--islands-color-error);
   }
 }
 
@@ -119,19 +202,32 @@
   }
 }
 
-/* Mono panel class: apply JetBrains Mono (fallback monospace) for right-hand panels */
+/* =============================================================================
+ * UTILITY CLASSES
+ * =============================================================================
+ */
+
+/* Mono panel: JetBrains Mono for code/terminal panels */
 .mono-panel {
   font-family: var(--font-mono);
 }
 
-/* Utility to apply mono font specifically to headings */
+/* Mono heading: monospace font for headings */
 .mono-heading {
   font-family: var(--font-mono) !important;
   text-transform: none;
   font-weight: 400;
 }
 
-/* Ensure we can explicitly reset tracking where Tailwind custom utilities might exist */
+/* Reset letter-spacing where needed */
 .tracking-normal {
   letter-spacing: normal !important;
 }
+
+/* =============================================================================
+ * ISLANDS TYPOGRAPHY CLASSES (imported from tokens)
+ * Use these for consistent typography across the app:
+ *   .typography-heading-h1, .typography-heading-h2, .typography-heading-h3
+ *   .typography-body-default, .typography-code
+ * =============================================================================
+ */

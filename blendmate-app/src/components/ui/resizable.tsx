@@ -31,20 +31,46 @@ function ResizablePanel({
   return <ResizablePanelPrimitive data-slot="resizable-panel" {...props} />
 }
 
+/**
+ * Resizable handle with col-resize cursor.
+ *
+ * Wrapper div needed because react-resizable-panels Separator
+ * doesn't properly apply cursor styles. The wrapper controls
+ * cursor while the inner Separator handles drag logic.
+ *
+ * Note: ew-resize cursor doesn't work in WKWebView, use col-resize instead.
+ */
 function ResizableHandle({
   withHandle,
   className,
+  style,
   ...props
 }: React.ComponentProps<typeof ResizableSeparator> & {
   withHandle?: boolean
 }) {
   return (
-    <ResizableSeparator
+    <div
       data-slot="resizable-handle"
-      // Styling (cursor, touch-action, size) is managed via App.css using [data-slot="resizable-handle"].
-      {...props}
+      className={className}
+      style={{
+        cursor: "col-resize",
+        width: "24px",
+        marginInline: "-10px", // 24px - 10px - 10px = 4px visual gap
+        flexShrink: 0,
+        zIndex: 10,
+        ...style,
+      }}
     >
-    </ResizableSeparator>
+      <ResizableSeparator
+        style={{
+          cursor: "col-resize",
+          width: "100%",
+          height: "100%",
+          background: "transparent",
+        }}
+        {...props}
+      />
+    </div>
   )
 }
 export { ResizablePanelGroup, ResizablePanel, ResizableHandle }
