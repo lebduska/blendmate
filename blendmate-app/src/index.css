@@ -189,6 +189,21 @@
     --chart-3: var(--islands-color-warning);
     --chart-4: var(--islands-color-info);
     --chart-5: var(--islands-color-error);
+
+    /* -------------------------------------------------------------------------
+     * BLENDER-SPECIFIC BRANDING
+     * Color palette based on Blender brand
+     * -------------------------------------------------------------------------
+     */
+    --blender-blue-dark: #3366FF;
+    --blender-blue-light: #6699FF;
+    --blender-gray: #C4C8CC;
+    --blender-orange-light: #E88844;
+    --blender-orange-dark: #E86420;
+
+    /* Semantic aliases */
+    --blender-primary: var(--blender-orange-dark);
+    --blender-secondary: var(--blender-blue-dark);
   }
 }
 
