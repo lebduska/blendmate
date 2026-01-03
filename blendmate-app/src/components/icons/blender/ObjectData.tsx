@@ -1,0 +1,20 @@
+import type { SVGProps } from 'react';
+
+interface ObjectDataProps extends SVGProps<SVGSVGElement> {
+  size?: number | string;
+}
+
+export function ObjectData({ size = 24, ...props }: ObjectDataProps) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 1600 1600"
+      width={size}
+      height={size}
+      fill="currentColor"
+      {...props}
+    >
+      <g fill="currentColor"><g enableBackground="new" transform="matrix(100 0 0 100 -2600 -34600)"><path d="m27.5 347a.50005.50005 0 0 0 -.5.5v3.5h1v-3h3v-1zm9.5 0v1h3v3h1v-3.5a.50005.50005 0 0 0 -.5-.5zm-10 10v3.5a.50005.50005 0 0 0 .5.5h3.5v-1h-3v-3zm13 0v3h-3v1h3.5a.50005.50005 0 0 0 .5-.5v-3.5z" opacity=".6"/><path d="m30.5 350c-.276131.00003-.499972.22387-.5.5v7c.000028.27613.223869.49997.5.5h7c.276131-.00003.499972-.22387.5-.5v-7c-.000028-.27613-.223869-.49997-.5-.5z"/></g></g>
+    </svg>
+  );
+}
