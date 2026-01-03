@@ -7,8 +7,23 @@ export interface KBNodeMeta {
   tags: string[];
 }
 
+export interface KBNodeParam {
+  name: string;
+  type: string;
+  description?: string;
+  options?: string[];
+}
+
+export interface KBNodeParams {
+  inputs?: KBNodeParam[];
+  properties?: KBNodeParam[];
+  outputs?: KBNodeParam[];
+  notes?: string[];
+}
+
 export interface KBNodeEntry {
   meta: KBNodeMeta;
   markdown?: string;
   previewUrl?: string;
+  params?: KBNodeParams;
 }

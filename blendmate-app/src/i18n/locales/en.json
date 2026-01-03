@@ -1,0 +1,139 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "save": "Save",
+    "cancel": "Cancel",
+    "close": "Close",
+    "refresh": "Refresh",
+    "selected": "Selected",
+    "active": "Active",
+    "visible": "Visible",
+    "hidden": "Hidden",
+    "yes": "Yes",
+    "no": "No",
+    "none": "None",
+    "more": "+{{count}} more",
+    "comingSoon": "Coming soon"
+  },
+  "connection": {
+    "waitingForBlender": "Waiting for Blender...",
+    "activeLabel": "Active",
+    "socketLabel": "Socket",
+    "offlineLabel": "Offline",
+    "statusConnected": "Socket open, waiting for heartbeat.",
+    "statusActive": "Heartbeat received from Blender.",
+    "statusDisconnected": "No WebSocket connection.",
+    "refreshScene": "Refresh scene"
+  },
+  "panels": {
+    "outliner": "Outliner",
+    "context": "Context",
+    "console": "Console",
+    "properties": "Properties",
+    "layers": "Layers",
+    "bench": "Bench"
+  },
+  "outliner": {
+    "collection": "Collection",
+    "selectObjectOrCollection": "Select an object or collection"
+  },
+  "object": {
+    "types": {
+      "MESH": "Mesh",
+      "CURVE": "Curve",
+      "CAMERA": "Camera",
+      "LIGHT": "Light",
+      "SPEAKER": "Speaker",
+      "FONT": "Text",
+      "EMPTY": "Empty",
+      "ARMATURE": "Armature",
+      "LATTICE": "Lattice"
+    },
+    "descriptions": {
+      "MESH": "Polygon geometry made of vertices, edges, and faces. Use it for solid forms and surface edits. In GN, mesh data is often converted to points, curves, or volumes.",
+      "CURVE": "Spline-based geometry with a direction. Useful for paths, profiles, and procedural lines that can be converted to meshes or swept.",
+      "CAMERA": "Viewpoint for rendering. Not used as geometry directly, but can drive GN parameters or act as a reference.",
+      "LIGHT": "Light source for rendering. Not geometry, but can be referenced for effects or drivers.",
+      "EMPTY": "Transform-only object used as a locator or pivot. Often used for constraints or as a controller.",
+      "COLLECTION": "A named group of objects. Useful for organizing scene content and instancing grouped assets."
+    }
+  },
+  "properties": {
+    "transform": "Transform",
+    "location": "Location",
+    "rotation": "Rotation",
+    "scale": "Scale",
+    "dimensions": "Dimensions",
+    "visibility": "Visibility",
+    "viewport": "Viewport",
+    "render": "Render",
+    "selectable": "Selectable",
+    "hierarchy": "Hierarchy",
+    "parent": "Parent",
+    "children": "Children",
+    "meshData": "Mesh Data",
+    "vertices": "Vertices",
+    "edges": "Edges",
+    "polygons": "Polygons",
+    "lightData": "Light Data",
+    "type": "Type",
+    "energy": "Energy",
+    "color": "Color",
+    "cameraData": "Camera Data",
+    "lens": "Lens",
+    "orthoScale": "Ortho Scale",
+    "clipStart": "Clip Start",
+    "clipEnd": "Clip End",
+    "curveData": "Curve Data",
+    "splines": "Splines",
+    "resolution": "Resolution",
+    "modifiers": "Modifiers",
+    "constraints": "Constraints",
+    "materials": "Materials",
+    "animation": "Animation",
+    "action": "Action",
+    "customProperties": "Custom Properties",
+    "contents": "Contents",
+    "objects": "Objects",
+    "settings": "Settings",
+    "colorTag": "Color Tag",
+    "lineArt": "Line Art"
+  },
+  "modifiers": {
+    "types": {
+      "NODES": "Procedural stack based on node graph (Geometry Nodes).",
+      "SUBSURF": "Smooths mesh by subdivision.",
+      "ARRAY": "Duplicates geometry in a linear or radial pattern.",
+      "MIRROR": "Mirrors geometry across an axis.",
+      "SOLIDIFY": "Adds thickness to surfaces.",
+      "BEVEL": "Chamfers edges to create softer corners.",
+      "DISPLACE": "Offsets vertices based on a texture or value.",
+      "BOOLEAN": "Combines geometry with union, difference, or intersect.",
+      "DECIMATE": "Reduces geometry complexity.",
+      "TRIANGULATE": "Converts faces to triangles.",
+      "WELD": "Merges nearby vertices.",
+      "SHRINKWRAP": "Projects geometry onto another surface.",
+      "SIMPLE_DEFORM": "Bend, taper, or twist deformation.",
+      "ARMATURE": "Deforms mesh using bones.",
+      "CLOTH": "Simulates fabric behavior.",
+      "FLUID": "Simulates liquid or gas behavior.",
+      "COLLISION": "Enables interaction with physics sims."
+    },
+    "noModifiers": "No modifiers."
+  },
+  "nodeHelp": {
+    "nodeNotFound": "I don't know this node yet, but I'll learn it soon!",
+    "searchingNode": "Searching for node {{nodeId}}...",
+    "template": "Template",
+    "inputs": "Inputs",
+    "outputs": "Outputs",
+    "noParams": "No parameters listed",
+    "noTags": "No tags available"
+  },
+  "titlebar": {
+    "unsaved": "(unsaved)",
+    "openInFinder": "Open in Finder",
+    "observes": "observes"
+  }
+}

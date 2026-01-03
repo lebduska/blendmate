@@ -1,0 +1,14 @@
+{
+  "sources": [
+    {
+      "type": "manual",
+      "version": "5.0",
+      "url": "https://docs.blender.org/manual/en/latest/modeling/geometry_nodes/mesh/operations/mesh_to_points.html"
+    },
+    {
+      "type": "api",
+      "version": "current",
+      "url": "https://docs.blender.org/api/current/bpy.types.GeometryNodeMeshToPoints.html"
+    }
+  ]
+}

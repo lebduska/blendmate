@@ -20,6 +20,7 @@ import sys
 modules = [
     "preferences",
     "throttle",
+    "commands",  # Command handlers (must be before connection)
     "connection",
     "handlers",
     "events",  # Registry must be registered after handlers and connection are loaded
@@ -29,11 +30,21 @@ modules = [
 
 def register():
     # Force reload of submodules for development
+    # First, reload subpackages (like commands.resolver, commands.handlers)
+    commands_submodules = ["commands.resolver", "commands.handlers"]
+    for sub_name in commands_submodules:
+        full_name = f"{__package__}.{sub_name}"
+        if full_name in sys.modules:
+            print(f"[Blendmate] Reloading {full_name}")
+            importlib.reload(sys.modules[full_name])
+
+    # Then reload main modules
     for mod_name in modules:
         full_name = f"{__package__}.{mod_name}"
         if full_name in sys.modules:
+            print(f"[Blendmate] Reloading {full_name}")
             importlib.reload(sys.modules[full_name])
-    
+
     # Register all submodules
     for mod_name in modules:
         mod = importlib.import_module(f".{mod_name}", __package__)

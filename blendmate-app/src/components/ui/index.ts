@@ -9,3 +9,15 @@ export { Badge } from "./badge";
 export { Button } from "./button";
 export { Input } from "./input";
 export { Skeleton } from "./skeleton";
+export { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "./tooltip";
+export {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuCheckboxItem,
+  DropdownMenuRadioItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuRadioGroup,
+} from "./dropdown-menu";

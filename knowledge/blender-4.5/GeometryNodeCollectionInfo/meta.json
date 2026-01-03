@@ -1,0 +1,8 @@
+{
+  "node_id": "GeometryNodeCollectionInfo",
+  "name": "Collection Info",
+  "category": "Input",
+  "description": "Provides geometry instances sourced from a collection.",
+  "blender_version": "4.5",
+  "tags": ["collection", "instances", "scene"]
+}

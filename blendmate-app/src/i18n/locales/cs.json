@@ -1,0 +1,139 @@
+{
+  "common": {
+    "loading": "Načítám...",
+    "error": "Chyba",
+    "save": "Uložit",
+    "cancel": "Zrušit",
+    "close": "Zavřít",
+    "refresh": "Obnovit",
+    "selected": "Vybráno",
+    "active": "Aktivní",
+    "visible": "Viditelný",
+    "hidden": "Skrytý",
+    "yes": "Ano",
+    "no": "Ne",
+    "none": "Žádný",
+    "more": "+{{count}} další",
+    "comingSoon": "Již brzy"
+  },
+  "connection": {
+    "waitingForBlender": "Čekám na Blender...",
+    "activeLabel": "Aktivní",
+    "socketLabel": "Socket",
+    "offlineLabel": "Offline",
+    "statusConnected": "Socket otevřen, čekám na heartbeat.",
+    "statusActive": "Heartbeat přijímán z Blenderu.",
+    "statusDisconnected": "Bez připojení k WebSocketu.",
+    "refreshScene": "Obnovit scénu"
+  },
+  "panels": {
+    "outliner": "Outliner",
+    "context": "Kontext",
+    "console": "Konzole",
+    "properties": "Vlastnosti",
+    "layers": "Vrstvy",
+    "bench": "Pracovní plocha"
+  },
+  "outliner": {
+    "collection": "Kolekce",
+    "selectObjectOrCollection": "Vyber objekt nebo kolekci"
+  },
+  "object": {
+    "types": {
+      "MESH": "Mesh",
+      "CURVE": "Křivka",
+      "CAMERA": "Kamera",
+      "LIGHT": "Světlo",
+      "SPEAKER": "Reproduktor",
+      "FONT": "Text",
+      "EMPTY": "Empty",
+      "ARMATURE": "Armatura",
+      "LATTICE": "Mřížka"
+    },
+    "descriptions": {
+      "MESH": "Polygonální geometrie složená z vertexů, hran a ploch. Používá se pro pevné tvary a povrchové úpravy. V GN se mesh data často převádí na body, křivky nebo objemy.",
+      "CURVE": "Spline geometrie se směrem. Užitečná pro cesty, profily a procedurální linie, které lze převést na mesh nebo protáhnout.",
+      "CAMERA": "Pohled pro renderování. Nepoužívá se přímo jako geometrie, ale může řídit GN parametry nebo sloužit jako reference.",
+      "LIGHT": "Zdroj světla pro renderování. Není geometrie, ale lze jej použít pro efekty nebo drivery.",
+      "EMPTY": "Objekt pouze s transformací, používaný jako lokátor nebo pivot. Často se používá pro constraints nebo jako ovladač.",
+      "COLLECTION": "Pojmenovaná skupina objektů. Užitečná pro organizaci obsahu scény a instancování seskupených assetů."
+    }
+  },
+  "properties": {
+    "transform": "Transformace",
+    "location": "Pozice",
+    "rotation": "Rotace",
+    "scale": "Měřítko",
+    "dimensions": "Rozměry",
+    "visibility": "Viditelnost",
+    "viewport": "Viewport",
+    "render": "Render",
+    "selectable": "Vybratelný",
+    "hierarchy": "Hierarchie",
+    "parent": "Rodič",
+    "children": "Potomci",
+    "meshData": "Data meshe",
+    "vertices": "Vertexy",
+    "edges": "Hrany",
+    "polygons": "Polygony",
+    "lightData": "Data světla",
+    "type": "Typ",
+    "energy": "Energie",
+    "color": "Barva",
+    "cameraData": "Data kamery",
+    "lens": "Objektiv",
+    "orthoScale": "Ortho měřítko",
+    "clipStart": "Clip start",
+    "clipEnd": "Clip end",
+    "curveData": "Data křivky",
+    "splines": "Spline",
+    "resolution": "Rozlišení",
+    "modifiers": "Modifikátory",
+    "constraints": "Omezení",
+    "materials": "Materiály",
+    "animation": "Animace",
+    "action": "Akce",
+    "customProperties": "Vlastní vlastnosti",
+    "contents": "Obsah",
+    "objects": "Objekty",
+    "settings": "Nastavení",
+    "colorTag": "Barevný štítek",
+    "lineArt": "Line Art"
+  },
+  "modifiers": {
+    "types": {
+      "NODES": "Procedurální stack založený na node grafu (Geometry Nodes).",
+      "SUBSURF": "Vyhlazuje mesh pomocí subdivize.",
+      "ARRAY": "Duplikuje geometrii v lineárním nebo radiálním vzoru.",
+      "MIRROR": "Zrcadlí geometrii přes osu.",
+      "SOLIDIFY": "Přidává tloušťku povrchům.",
+      "BEVEL": "Zkosí hrany pro měkčí rohy.",
+      "DISPLACE": "Posune vertexy na základě textury nebo hodnoty.",
+      "BOOLEAN": "Kombinuje geometrii pomocí union, difference nebo intersect.",
+      "DECIMATE": "Snižuje složitost geometrie.",
+      "TRIANGULATE": "Převádí plochy na trojúhelníky.",
+      "WELD": "Spojuje blízké vertexy.",
+      "SHRINKWRAP": "Promítá geometrii na jiný povrch.",
+      "SIMPLE_DEFORM": "Ohýbání, zužování nebo kroucení deformace.",
+      "ARMATURE": "Deformuje mesh pomocí kostí.",
+      "CLOTH": "Simuluje chování látky.",
+      "FLUID": "Simuluje chování kapaliny nebo plynu.",
+      "COLLISION": "Umožňuje interakci s fyzikálními simulacemi."
+    },
+    "noModifiers": "Žádné modifikátory."
+  },
+  "nodeHelp": {
+    "nodeNotFound": "Tenhle uzel ještě neznám, ale brzy se ho naučím!",
+    "searchingNode": "Hledám informace pro uzel {{nodeId}}...",
+    "template": "Šablona",
+    "inputs": "Vstupy",
+    "outputs": "Výstupy",
+    "noParams": "Žádné parametry",
+    "noTags": "Žádné štítky"
+  },
+  "titlebar": {
+    "unsaved": "(neuloženo)",
+    "openInFinder": "Otevřít ve Finderu",
+    "observes": "sleduje"
+  }
+}

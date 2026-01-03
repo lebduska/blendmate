@@ -11,18 +11,36 @@ def on_depsgraph_update(scene, depsgraph):
         connection._last_node_id = current_node_id
         connection.info(f"Node Change: {current_node_id}")
         connection.send_to_blendmate({
-            "type": "context", 
-            "area": "gn", 
+            "type": "context",
+            "area": "gn",
             "node_id": current_node_id
         })
-    
-    # Throttled depsgraph_update event (fallback only)
-    # Using throttle layer to avoid high-frequency spam
-    throttle.throttle_event(
-        "depsgraph_update",
-        {"type": "event", "event": "depsgraph_update"},
-        reason="depsgraph_changed"
-    )
+
+    # Extract changed objects from depsgraph
+    changed_objects = []
+    geometry_changed = []
+    for update in depsgraph.updates:
+        if update.id and hasattr(update.id, 'name'):
+            obj_name = update.id.name
+            # Check if it's an object (not scene, world, etc.)
+            if isinstance(update.id, bpy.types.Object):
+                changed_objects.append(obj_name)
+                # Check if geometry changed (not just transform)
+                if update.is_updated_geometry:
+                    geometry_changed.append(obj_name)
+
+    # Only send event if something actually changed
+    if changed_objects:
+        throttle.throttle_event(
+            "depsgraph_update",
+            {
+                "type": "event",
+                "event": "depsgraph_update",
+                "changed_objects": changed_objects,
+                "geometry_changed": geometry_changed,
+            },
+            reason="depsgraph_changed"
+        )
 
 @bpy.app.handlers.persistent
 def on_frame_change(scene, *args):

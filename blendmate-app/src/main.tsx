@@ -7,6 +7,12 @@ import "@fontsource/jetbrains-mono/600.css";
 import "@fontsource/jetbrains-mono/700.css";
 import "./index.css";
 import "./App.css";
+import { initBlenderConnection } from "./stores/blenderStore";
+// Initialize i18n before app renders
+import "./i18n";
+
+// Initialize Blender WebSocket connection
+initBlenderConnection();
 
 // Accessibility helper: add .user-is-tabbing to <html> when user navigates by keyboard
 (function setupUserIsTabbing() {

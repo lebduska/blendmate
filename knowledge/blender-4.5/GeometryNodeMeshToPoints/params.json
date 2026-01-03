@@ -1,0 +1,39 @@
+{
+  "inputs": [
+    {
+      "name": "Mesh",
+      "type": "Geometry",
+      "description": "Input mesh to convert."
+    },
+    {
+      "name": "Selection",
+      "type": "Bool",
+      "description": "Select which mesh elements generate points."
+    },
+    {
+      "name": "Position",
+      "type": "Vector",
+      "description": "Positions of generated points (defaults to mesh positions)."
+    },
+    {
+      "name": "Radius",
+      "type": "Float",
+      "description": "Radius assigned to generated points."
+    }
+  ],
+  "properties": [
+    {
+      "name": "Mode",
+      "type": "Enum",
+      "options": ["Vertices", "Edges", "Faces", "Corners"],
+      "description": "Which mesh elements create points."
+    }
+  ],
+  "outputs": [
+    {
+      "name": "Points",
+      "type": "Geometry",
+      "description": "Generated point cloud."
+    }
+  ]
+}

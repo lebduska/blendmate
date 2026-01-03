@@ -1,4 +1,4 @@
-import { KBNodeEntry, KBNodeMeta } from "../types/kb";
+import { KBNodeEntry, KBNodeMeta, KBNodeParams } from "../types/kb";
 
 // Pro vývojové účely v prohlížeči budeme simulovat načítání.
 // V produkci (Tauri) budeme používat Tauri FS API nebo fetch z assetů.
@@ -21,13 +21,33 @@ export async function loadNodeHelp(nodeId: string): Promise<KBNodeEntry> {
       console.warn(`No info.md found for ${nodeId}`);
     }
 
-    // Preview URL - jednoduše sestavíme cestu
-    const previewUrl = `/knowledge/blender-4.5/${nodeId}/preview.webp`;
+    let params: KBNodeParams | undefined;
+    try {
+      const paramsResponse = await fetch(`/knowledge/blender-4.5/${nodeId}/params.json`);
+      if (paramsResponse.ok) {
+        params = await paramsResponse.json();
+      }
+    } catch (e) {
+      console.warn(`No params.json found for ${nodeId}`);
+    }
+
+    let previewUrl: string | undefined;
+    try {
+      const previewResponse = await fetch(`/knowledge/blender-4.5/${nodeId}/preview.webp`, {
+        method: "HEAD",
+      });
+      if (previewResponse.ok) {
+        previewUrl = `/knowledge/blender-4.5/${nodeId}/preview.webp`;
+      }
+    } catch (e) {
+      console.warn(`No preview.webp found for ${nodeId}`);
+    }
 
     return {
       meta,
       markdown,
-      previewUrl
+      previewUrl,
+      params
     };
   } catch (error) {
     console.error(`Failed to load KB for ${nodeId}:`, error);

@@ -1,0 +1,8 @@
+{
+  "node_id": "GeometryNodeMeshToPoints",
+  "name": "Mesh to Points",
+  "category": "Mesh",
+  "description": "Converts mesh elements into a point cloud.",
+  "blender_version": "4.5",
+  "tags": ["mesh", "points", "conversion"]
+}

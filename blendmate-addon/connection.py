@@ -28,24 +28,165 @@ def send_to_blendmate(data):
 # ============== Scene Introspection ==============
 
 def get_object_info(obj):
-    """Get basic info about an object."""
-    return {
+    """Get comprehensive info about an object."""
+    # Basic info
+    info = {
         "name": obj.name,
         "type": obj.type,
         "visible": obj.visible_get() if hasattr(obj, 'visible_get') else True,
         "selected": obj.select_get() if hasattr(obj, 'select_get') else False,
         "parent": obj.parent.name if obj.parent else None,
-        "modifiers": [{"name": m.name, "type": m.type} for m in obj.modifiers],
-        "has_gn": any(m.type == 'NODES' for m in obj.modifiers),
+        "children": [c.name for c in obj.children],
     }
 
+    # Transform
+    info["location"] = list(obj.location)
+    info["rotation_euler"] = list(obj.rotation_euler)
+    info["scale"] = list(obj.scale)
+    info["dimensions"] = list(obj.dimensions)
+
+    # Display
+    info["display_type"] = obj.display_type
+    info["show_name"] = obj.show_name
+    info["show_axis"] = obj.show_axis
+    info["show_wire"] = obj.show_wire
+    info["show_in_front"] = obj.show_in_front
+    info["color"] = list(obj.color)
+
+    # Visibility
+    info["hide_viewport"] = obj.hide_viewport
+    info["hide_render"] = obj.hide_render
+    info["hide_select"] = obj.hide_select
+
+    # Modifiers
+    info["modifiers"] = [
+        {
+            "name": m.name,
+            "type": m.type,
+            "show_viewport": m.show_viewport,
+            "show_render": m.show_render,
+        }
+        for m in obj.modifiers
+    ]
+    info["has_gn"] = any(m.type == 'NODES' for m in obj.modifiers)
+
+    # Constraints
+    info["constraints"] = [
+        {"name": c.name, "type": c.type, "enabled": c.enabled}
+        for c in obj.constraints
+    ]
+
+    # Materials
+    info["materials"] = [
+        slot.material.name if slot.material else None
+        for slot in obj.material_slots
+    ]
+    info["active_material"] = obj.active_material.name if obj.active_material else None
+
+    # Data-specific info
+    if obj.data:
+        info["data_name"] = obj.data.name
+        if obj.type == 'MESH':
+            mesh = obj.data
+            info["mesh"] = {
+                "vertices": len(mesh.vertices),
+                "edges": len(mesh.edges),
+                "polygons": len(mesh.polygons),
+                "materials": len(mesh.materials),
+            }
+            # Geometry is NOT included here - use get_geometry action for heavy data
+            # This keeps get_scene fast and lightweight
+        elif obj.type == 'CURVE':
+            curve = obj.data
+            info["curve"] = {
+                "splines": len(curve.splines),
+                "dimensions": curve.dimensions,
+                "resolution_u": curve.resolution_u,
+            }
+        elif obj.type == 'LIGHT':
+            light = obj.data
+            info["light"] = {
+                "type": light.type,
+                "color": list(light.color),
+                "energy": light.energy,
+            }
+        elif obj.type == 'CAMERA':
+            cam = obj.data
+            info["camera"] = {
+                "type": cam.type,
+                "lens": cam.lens if cam.type == 'PERSP' else None,
+                "ortho_scale": cam.ortho_scale if cam.type == 'ORTHO' else None,
+                "clip_start": cam.clip_start,
+                "clip_end": cam.clip_end,
+            }
+
+    # Custom properties
+    custom_props = {}
+    for key in obj.keys():
+        if key not in ['_RNA_UI', 'cycles']:
+            val = obj[key]
+            # Convert to JSON-serializable
+            if hasattr(val, 'to_list'):
+                custom_props[key] = val.to_list()
+            elif isinstance(val, (int, float, str, bool)):
+                custom_props[key] = val
+            else:
+                custom_props[key] = str(val)
+    if custom_props:
+        info["custom_properties"] = custom_props
+
+    # Animation
+    info["has_animation"] = obj.animation_data is not None
+    if obj.animation_data and obj.animation_data.action:
+        info["action_name"] = obj.animation_data.action.name
+
+    return info
+
 def get_collection_tree(collection):
-    """Recursively get collection hierarchy."""
-    return {
+    """Recursively get collection hierarchy with full details."""
+    info = {
         "name": collection.name,
         "objects": [obj.name for obj in collection.objects],
+        "object_count": len(collection.objects),
         "children": [get_collection_tree(child) for child in collection.children],
+        "children_count": len(collection.children),
     }
+
+    # Visibility (only available on non-master collections)
+    if hasattr(collection, 'hide_viewport'):
+        info["hide_viewport"] = collection.hide_viewport
+    if hasattr(collection, 'hide_render'):
+        info["hide_render"] = collection.hide_render
+    if hasattr(collection, 'hide_select'):
+        info["hide_select"] = collection.hide_select
+
+    # Color tag
+    if hasattr(collection, 'color_tag'):
+        info["color_tag"] = collection.color_tag
+
+    # Lineart
+    if hasattr(collection, 'lineart_usage'):
+        info["lineart_usage"] = collection.lineart_usage
+
+    # Instance offset
+    if hasattr(collection, 'instance_offset'):
+        info["instance_offset"] = list(collection.instance_offset)
+
+    # Custom properties
+    custom_props = {}
+    for key in collection.keys():
+        if key not in ['_RNA_UI']:
+            val = collection[key]
+            if hasattr(val, 'to_list'):
+                custom_props[key] = val.to_list()
+            elif isinstance(val, (int, float, str, bool)):
+                custom_props[key] = val
+            else:
+                custom_props[key] = str(val)
+    if custom_props:
+        info["custom_properties"] = custom_props
+
+    return info
 
 def get_scene_data():
     """Get full scene data for Blendmate."""
@@ -78,6 +219,118 @@ def get_scene_data():
         "filepath": bpy.data.filepath or "(unsaved)",
     }
 
+def get_object_geometry(obj, decimate_ratio=None):
+    """
+    Get geometry data for a single mesh object.
+
+    Args:
+        obj: Blender object
+        decimate_ratio: Optional ratio (0.0-1.0) to simplify mesh
+
+    Returns:
+        Dict with vertices, edges and triangles, or None for non-mesh objects
+    """
+    if obj.type != 'MESH':
+        return None
+
+    try:
+        depsgraph = bpy.context.evaluated_depsgraph_get()
+        eval_obj = obj.evaluated_get(depsgraph)
+        eval_mesh = eval_obj.to_mesh()
+
+        # Extract vertices and ORIGINAL edges BEFORE triangulation (for wireframe)
+        verts = []
+        for v in eval_mesh.vertices:
+            world_co = obj.matrix_world @ v.co
+            verts.extend([round(world_co.x, 4), round(world_co.y, 4), round(world_co.z, 4)])
+
+        # Original edges (before triangulation) - this matches Blender's wireframe
+        # Use a set to deduplicate edges (some meshes have overlapping edges)
+        edge_set = set()
+        for e in eval_mesh.edges:
+            v1, v2 = e.vertices[0], e.vertices[1]
+            # Normalize edge direction (smaller index first) to catch duplicates
+            edge_key = (min(v1, v2), max(v1, v2))
+            edge_set.add(edge_key)
+
+        edges = []
+        for v1, v2 in edge_set:
+            edges.extend([v1, v2])
+
+        original_edge_count = len(edge_set)
+
+        # Now triangulate for solid rendering
+        import bmesh
+        bm = bmesh.new()
+        bm.from_mesh(eval_mesh)
+        bmesh.ops.triangulate(bm, faces=bm.faces[:])
+        bm.to_mesh(eval_mesh)
+        bm.free()
+
+        # Triangles as flat array [v1,v2,v3, v1,v2,v3, ...]
+        triangles = []
+        for p in eval_mesh.polygons:
+            if len(p.vertices) == 3:
+                triangles.extend([p.vertices[0], p.vertices[1], p.vertices[2]])
+
+        result = {
+            "name": obj.name,
+            "vertices": verts,
+            "edges": edges,
+            "triangles": triangles,
+            "vertex_count": len(verts) // 3,
+            "edge_count": original_edge_count,
+            "triangle_count": len(triangles) // 3,
+        }
+
+        eval_obj.to_mesh_clear()
+        return result
+
+    except Exception as e:
+        return {"name": obj.name, "error": str(e)}
+
+
+def get_all_geometry(object_names=None, max_verts=50000):
+    """
+    Get geometry for multiple objects at once.
+
+    Args:
+        object_names: List of object names, or None for all mesh objects
+        max_verts: Skip objects with more vertices than this
+
+    Returns:
+        Dict mapping object names to geometry data
+    """
+    result = {}
+
+    if object_names is None:
+        # Get all mesh objects
+        objects = [obj for obj in bpy.data.objects if obj.type == 'MESH']
+    else:
+        objects = [bpy.data.objects.get(name) for name in object_names]
+        objects = [obj for obj in objects if obj is not None]
+
+    for obj in objects:
+        if obj.type != 'MESH':
+            continue
+
+        # Skip very large meshes
+        if len(obj.data.vertices) > max_verts:
+            result[obj.name] = {
+                "name": obj.name,
+                "skipped": True,
+                "reason": f"Too many vertices ({len(obj.data.vertices)} > {max_verts})",
+                "vertex_count": len(obj.data.vertices),
+            }
+            continue
+
+        geo = get_object_geometry(obj)
+        if geo:
+            result[obj.name] = geo
+
+    return result
+
+
 def get_active_gn_context():
     """Get detailed info about active GN node."""
     node_info = get_active_gn_node()
@@ -107,10 +360,24 @@ def get_active_gn_context():
 
 # ============== Request Handler ==============
 
+# Import command handlers
+try:
+    from .commands import handle_command as dispatch_command, COMMAND_HANDLERS
+    _commands_available = True
+    info(f"Commands module loaded: {len(COMMAND_HANDLERS)} handlers available: {list(COMMAND_HANDLERS.keys())}")
+except ImportError as e:
+    _commands_available = False
+    info(f"Commands module not available: {e}")
+    import traceback
+    traceback.print_exc()
+
+
 def handle_request(request_data):
     """Handle incoming request from Blendmate and return response."""
     action = request_data.get("action")
     request_id = request_data.get("id", "unknown")
+    target = request_data.get("target", "")
+    params = request_data.get("params", {})
 
     info(f"Handling request: {action} (id: {request_id})")
 
@@ -121,6 +388,7 @@ def handle_request(request_data):
     }
 
     try:
+        # Built-in actions
         if action == "get_scene":
             data = get_scene_data()
             response["data"] = data
@@ -131,8 +399,45 @@ def handle_request(request_data):
                 info(f"  Scene data: {data}")
         elif action == "get_gn_context":
             response["data"] = get_active_gn_context()
+        elif action == "get_geometry":
+            # Get geometry for specified objects or all
+            object_names = params.get("objects")  # None = all mesh objects
+            max_verts = params.get("max_verts", 50000)
+            data = get_all_geometry(object_names, max_verts)
+            response["data"] = data
+            info(f"  Geometry: {len(data)} objects")
         elif action == "ping":
             response["data"] = {"pong": True, "time": time.time()}
+        elif action == "get_capabilities":
+            # Get capabilities from command handler or return basic info
+            info(f"get_capabilities: _commands_available={_commands_available}, 'get_capabilities' in COMMAND_HANDLERS={'get_capabilities' in COMMAND_HANDLERS if _commands_available else 'N/A'}")
+            if _commands_available and "get_capabilities" in COMMAND_HANDLERS:
+                result = dispatch_command("get_capabilities", target, params)
+                if result.get("success"):
+                    data = result.get("data", {})
+                    info(f"Capabilities loaded: {len(data.get('operators', {}))} operators, {len(data.get('modifiers', {}))} modifiers")
+                    response["data"] = data
+                else:
+                    response["error"] = result.get("error", "Failed to get capabilities")
+                    info(f"Capabilities error: {response['error']}")
+            else:
+                # Fallback: return minimal capabilities
+                response["data"] = {
+                    "operators": {},
+                    "modifiers": {},
+                    "object_types": ["MESH", "CURVE", "LIGHT", "CAMERA", "EMPTY"],
+                    "primitive_meshes": ["cube", "cylinder", "sphere", "plane", "torus"],
+                }
+                info(f"Warning: Full capabilities not available, using fallback. _commands_available={_commands_available}")
+        # Command handlers (property.set, property.get, operator.call, etc.)
+        elif _commands_available and action in COMMAND_HANDLERS:
+            result = dispatch_command(action, target, params)
+            if result.get("success"):
+                response["data"] = result.get("data")
+                if result.get("warnings"):
+                    response["warnings"] = result["warnings"]
+            else:
+                response["error"] = result.get("error", "Unknown error")
         else:
             response["error"] = f"Unknown action: {action}"
     except Exception as e:

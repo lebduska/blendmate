@@ -1,0 +1,37 @@
+{
+  "inputs": [
+    {
+      "name": "Collection",
+      "type": "Collection",
+      "description": "Collection to read instances from."
+    },
+    {
+      "name": "Separate Children",
+      "type": "Bool",
+      "description": "Output each child as a separate instance; useful for per-point selection."
+    },
+    {
+      "name": "Reset Children",
+      "type": "Bool",
+      "description": "Remove child transforms when converting to instances."
+    }
+  ],
+  "properties": [
+    {
+      "name": "Transform Space",
+      "type": "Enum",
+      "options": ["Original", "Relative"],
+      "description": "Controls how collection transforms are applied to instances."
+    }
+  ],
+  "outputs": [
+    {
+      "name": "Instances",
+      "type": "Geometry",
+      "description": "Instance geometry from the collection."
+    }
+  ],
+  "notes": [
+    "Renaming collection children may require a manual update to refresh output ordering."
+  ]
+}
