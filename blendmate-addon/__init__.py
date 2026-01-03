@@ -18,6 +18,7 @@ import sys
 
 # List of submodules to register in order
 modules = [
+    "protocol",  # Protocol definitions (must be first - no dependencies)
     "preferences",
     "throttle",
     "commands",  # Command handlers (must be before connection)

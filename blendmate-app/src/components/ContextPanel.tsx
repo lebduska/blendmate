@@ -1,13 +1,14 @@
 import { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { cn } from "@/lib/utils";
-import { Info, Terminal, Settings, Layers } from "lucide-react";
+import { Info, Terminal, Settings, Layers, ScanLine } from "lucide-react";
 import { ScrollArea, Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui";
 import ContextSummary from "@/components/ContextSummary";
 import PropertiesPanel from "@/components/PropertiesPanel";
+import InfluenceInspector from "@/components/InfluenceInspector";
 import { EventsLogPanel } from "@/components/panels";
 
-type TabId = 'context' | 'console' | 'properties' | 'layers';
+type TabId = 'influence' | 'context' | 'console' | 'properties' | 'layers';
 
 type Tab = {
   id: TabId;
@@ -16,6 +17,7 @@ type Tab = {
 };
 
 const TABS: Tab[] = [
+  { id: 'influence', labelKey: 'panels.influence', icon: <ScanLine className="size-4" /> },
   { id: 'context', labelKey: 'panels.context', icon: <Info className="size-4" /> },
   { id: 'console', labelKey: 'panels.console', icon: <Terminal className="size-4" /> },
   { id: 'properties', labelKey: 'panels.properties', icon: <Settings className="size-4" /> },
@@ -30,7 +32,7 @@ interface ContextPanelProps {
 export default function ContextPanel({ selectedId, currentNodeId: _currentNodeId }: ContextPanelProps) {
   // _currentNodeId is reserved for future GN node context display
   const { t } = useTranslation();
-  const [activeTab, setActiveTab] = useState<TabId>('console');
+  const [activeTab, setActiveTab] = useState<TabId>('influence');
 
   const handleTabClick = useCallback((tabId: TabId) => {
     setActiveTab(tabId);
@@ -51,6 +53,10 @@ export default function ContextPanel({ selectedId, currentNodeId: _currentNodeId
       <div className="flex-1 min-h-0 flex">
         {/* Tab Body */}
         <div className="flex-1 min-h-0 overflow-hidden">
+          {activeTab === 'influence' && (
+            <InfluenceInspector />
+          )}
+
           {activeTab === 'context' && (
             <ScrollArea className="h-full p-4">
               <ContextSummary selectedId={selectedId} />

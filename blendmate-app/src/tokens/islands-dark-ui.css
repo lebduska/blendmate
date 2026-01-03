@@ -70,6 +70,10 @@
   /* 12 units (section spacing) */
   --islands-spacing-24: 96px;
 
+  /* PANEL LAYOUT */
+  /* Gap between resizable panels */
+  --islands-panel-gap: 2px;
+
   /* RADIUS */
   /* No border radius (sharp corners) */
   --islands-radius-none: 0px;

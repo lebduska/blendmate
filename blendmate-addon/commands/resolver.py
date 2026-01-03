@@ -236,4 +236,15 @@ def convert_value(value: Any, current: Any = None) -> Any:
         if hasattr(current, '__len__') and len(current) == len(value):
             return value
 
+    # Handle object references (e.g., Boolean modifier's object property)
+    if hasattr(current, 'id_data') or (current is None and isinstance(value, str)):
+        # This might be an object reference property
+        if isinstance(value, str) and value in bpy.data.objects:
+            return bpy.data.objects[value]
+
+    # Handle enum strings - Blender accepts string values for enums
+    # No conversion needed, just pass through
+    if isinstance(value, str) and isinstance(current, str):
+        return value
+
     return value

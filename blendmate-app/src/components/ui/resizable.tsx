@@ -32,7 +32,7 @@ function ResizablePanel({
 }
 
 /**
- * Resizable handle with col-resize cursor.
+ * Resizable handle with appropriate resize cursor.
  *
  * Wrapper div needed because react-resizable-panels Separator
  * doesn't properly apply cursor styles. The wrapper controls
@@ -44,18 +44,34 @@ function ResizableHandle({
   withHandle,
   className,
   style,
+  orientation = "horizontal",
   ...props
 }: React.ComponentProps<typeof ResizableSeparator> & {
   withHandle?: boolean
+  orientation?: "horizontal" | "vertical"
 }) {
+  const isVertical = orientation === "vertical"
+  const cursor = isVertical ? "row-resize" : "col-resize"
+  // Handle size and margin calculated to create proper hit area
+  // Hit area = 20px, visual gap controlled by --islands-panel-gap (2px)
+  const handleSize = 20
+  const margin = -((handleSize - 2) / 2) // 2px = --islands-panel-gap
+
   return (
     <div
       data-slot="resizable-handle"
       className={className}
       style={{
-        cursor: "col-resize",
-        width: "24px",
-        marginInline: "-10px", // 24px - 10px - 10px = 4px visual gap
+        cursor,
+        ...(isVertical
+          ? {
+              height: `${handleSize}px`,
+              marginBlock: `${margin}px`,
+            }
+          : {
+              width: `${handleSize}px`,
+              marginInline: `${margin}px`,
+            }),
         flexShrink: 0,
         zIndex: 10,
         ...style,
@@ -63,7 +79,7 @@ function ResizableHandle({
     >
       <ResizableSeparator
         style={{
-          cursor: "col-resize",
+          cursor,
           width: "100%",
           height: "100%",
           background: "transparent",
