@@ -27,37 +27,74 @@
     "refreshScene": "Refresh scene"
   },
   "panels": {
-    "outliner": "Outliner",
+    "scene": "Scene",
+    "influence": "Influence",
     "context": "Context",
     "console": "Console",
     "properties": "Properties",
     "layers": "Layers",
     "bench": "Bench"
   },
-  "outliner": {
+  "scene": {
     "collection": "Collection",
     "selectObjectOrCollection": "Select an object or collection"
   },
   "object": {
+    "categories": {
+      "geometry": {
+        "name": "Geometry",
+        "description": "Objects that contain visual geometry data"
+      },
+      "rigging": {
+        "name": "Rigging",
+        "description": "Objects for animation and deformation control"
+      },
+      "rendering": {
+        "name": "Rendering",
+        "description": "Objects that affect how scenes are rendered"
+      },
+      "other": {
+        "name": "Other",
+        "description": "Helper and utility objects"
+      }
+    },
     "types": {
       "MESH": "Mesh",
       "CURVE": "Curve",
+      "SURFACE": "Surface",
+      "META": "Metaball",
+      "FONT": "Text",
+      "VOLUME": "Volume",
+      "CURVES": "Curves",
+      "POINTCLOUD": "Point Cloud",
+      "GPENCIL": "Grease Pencil",
+      "ARMATURE": "Armature",
+      "LATTICE": "Lattice",
       "CAMERA": "Camera",
       "LIGHT": "Light",
-      "SPEAKER": "Speaker",
-      "FONT": "Text",
+      "LIGHT_PROBE": "Light Probe",
       "EMPTY": "Empty",
-      "ARMATURE": "Armature",
-      "LATTICE": "Lattice"
+      "SPEAKER": "Speaker"
     },
     "descriptions": {
-      "MESH": "Polygon geometry made of vertices, edges, and faces. Use it for solid forms and surface edits. In GN, mesh data is often converted to points, curves, or volumes.",
-      "CURVE": "Spline-based geometry with a direction. Useful for paths, profiles, and procedural lines that can be converted to meshes or swept.",
-      "CAMERA": "Viewpoint for rendering. Not used as geometry directly, but can drive GN parameters or act as a reference.",
-      "LIGHT": "Light source for rendering. Not geometry, but can be referenced for effects or drivers.",
-      "EMPTY": "Transform-only object used as a locator or pivot. Often used for constraints or as a controller.",
-      "COLLECTION": "A named group of objects. Useful for organizing scene content and instancing grouped assets."
-    }
+      "MESH": "Polygon geometry made of vertices, edges, and faces. Use it for solid forms and surface edits.",
+      "CURVE": "Spline-based geometry with a direction. Useful for paths, profiles, and procedural lines.",
+      "SURFACE": "NURBS surface for smooth, mathematically precise geometry. Common in CAD workflows.",
+      "META": "Implicit surface that blends with nearby metaballs. Good for organic shapes.",
+      "FONT": "Text geometry that can be converted to mesh or curve. Supports custom fonts.",
+      "VOLUME": "Volumetric data like smoke, fog, or imported OpenVDB files.",
+      "CURVES": "New hair/curves system for strands and fur. More efficient than particle hair.",
+      "POINTCLOUD": "Collection of points without connecting geometry. Used for effects and simulations.",
+      "GPENCIL": "2D drawing strokes in 3D space. Combines illustration with 3D workflow.",
+      "ARMATURE": "Skeleton for character animation. Bones deform mesh via weights.",
+      "LATTICE": "Cage deformer that warps geometry non-destructively. Good for broad shape changes.",
+      "CAMERA": "Viewpoint for rendering. Defines what the final image captures.",
+      "LIGHT": "Light source for illumination. Types: Point, Sun, Spot, Area.",
+      "LIGHT_PROBE": "Captures lighting for real-time rendering (EEVEE). Types: Sphere, Plane, Volume.",
+      "EMPTY": "Transform-only placeholder. Used as parent, target, or controller.",
+      "SPEAKER": "3D audio source for spatial sound in animations."
+    },
+    "siblings": "Also in this category"
   },
   "properties": {
     "transform": "Transform",

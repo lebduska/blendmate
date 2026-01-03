@@ -27,37 +27,74 @@
     "refreshScene": "Obnovit scénu"
   },
   "panels": {
-    "outliner": "Outliner",
+    "scene": "Scéna",
+    "influence": "Influence",
     "context": "Kontext",
     "console": "Konzole",
     "properties": "Vlastnosti",
     "layers": "Vrstvy",
     "bench": "Pracovní plocha"
   },
-  "outliner": {
+  "scene": {
     "collection": "Kolekce",
     "selectObjectOrCollection": "Vyber objekt nebo kolekci"
   },
   "object": {
+    "categories": {
+      "geometry": {
+        "name": "Geometrie",
+        "description": "Objekty obsahující vizuální geometrická data"
+      },
+      "rigging": {
+        "name": "Rigging",
+        "description": "Objekty pro animaci a řízení deformací"
+      },
+      "rendering": {
+        "name": "Renderování",
+        "description": "Objekty ovlivňující vykreslování scény"
+      },
+      "other": {
+        "name": "Ostatní",
+        "description": "Pomocné a utility objekty"
+      }
+    },
     "types": {
       "MESH": "Mesh",
       "CURVE": "Křivka",
+      "SURFACE": "Povrch",
+      "META": "Metaball",
+      "FONT": "Text",
+      "VOLUME": "Objem",
+      "CURVES": "Křivky",
+      "POINTCLOUD": "Point Cloud",
+      "GPENCIL": "Grease Pencil",
+      "ARMATURE": "Armatura",
+      "LATTICE": "Mřížka",
       "CAMERA": "Kamera",
       "LIGHT": "Světlo",
-      "SPEAKER": "Reproduktor",
-      "FONT": "Text",
+      "LIGHT_PROBE": "Light Probe",
       "EMPTY": "Empty",
-      "ARMATURE": "Armatura",
-      "LATTICE": "Mřížka"
+      "SPEAKER": "Reproduktor"
     },
     "descriptions": {
-      "MESH": "Polygonální geometrie složená z vertexů, hran a ploch. Používá se pro pevné tvary a povrchové úpravy. V GN se mesh data často převádí na body, křivky nebo objemy.",
-      "CURVE": "Spline geometrie se směrem. Užitečná pro cesty, profily a procedurální linie, které lze převést na mesh nebo protáhnout.",
-      "CAMERA": "Pohled pro renderování. Nepoužívá se přímo jako geometrie, ale může řídit GN parametry nebo sloužit jako reference.",
-      "LIGHT": "Zdroj světla pro renderování. Není geometrie, ale lze jej použít pro efekty nebo drivery.",
-      "EMPTY": "Objekt pouze s transformací, používaný jako lokátor nebo pivot. Často se používá pro constraints nebo jako ovladač.",
-      "COLLECTION": "Pojmenovaná skupina objektů. Užitečná pro organizaci obsahu scény a instancování seskupených assetů."
-    }
+      "MESH": "Polygonální geometrie z vertexů, hran a ploch. Pro pevné tvary a povrchové úpravy.",
+      "CURVE": "Spline geometrie se směrem. Pro cesty, profily a procedurální linie.",
+      "SURFACE": "NURBS povrch pro hladkou, matematicky přesnou geometrii. Běžný v CAD.",
+      "META": "Implicitní povrch splývající s okolními metabally. Pro organické tvary.",
+      "FONT": "Textová geometrie převoditelná na mesh nebo křivku. Podporuje vlastní fonty.",
+      "VOLUME": "Volumetrická data jako kouř, mlha nebo importované OpenVDB.",
+      "CURVES": "Nový systém vlasů/křivek pro prameny a srst. Efektivnější než particle hair.",
+      "POINTCLOUD": "Kolekce bodů bez propojující geometrie. Pro efekty a simulace.",
+      "GPENCIL": "2D tahy ve 3D prostoru. Kombinuje ilustraci s 3D workflow.",
+      "ARMATURE": "Kostra pro animaci postav. Kosti deformují mesh přes váhy.",
+      "LATTICE": "Deformační klec pro nedestruktivní tvarování. Pro široké změny tvaru.",
+      "CAMERA": "Pohled pro renderování. Definuje co zachytí výsledný obraz.",
+      "LIGHT": "Zdroj osvětlení. Typy: Point, Sun, Spot, Area.",
+      "LIGHT_PROBE": "Zachycuje osvětlení pro realtime render (EEVEE). Typy: Sphere, Plane, Volume.",
+      "EMPTY": "Placeholder pouze s transformací. Jako rodič, cíl nebo ovladač.",
+      "SPEAKER": "3D zdroj zvuku pro prostorový zvuk v animacích."
+    },
+    "siblings": "Také v této kategorii"
   },
   "properties": {
     "transform": "Transformace",
