@@ -5,9 +5,9 @@ import { invoke } from "@tauri-apps/api/core";
 import { useTranslation } from "react-i18next";
 import { changeLanguage, getCurrentLanguage } from "./i18n";
 import { useBlenderStore } from "./stores/blenderStore";
-import { Outliner, ContextPanel } from "@/components";
-import { SceneViewer, ChatAssistant, type ViewMode } from "@/components/bench";
-import { Activity, ListTree, Minus, Square, X, Minimize2, FileBox, RefreshCw, Radar, UploadCloud, Languages, Check, Bot, Eye, PanelLeft, PanelRight } from "lucide-react";
+import { ScenePanel, ContextPanel } from "@/components";
+import { SceneViewer, Mate, type ViewMode } from "@/components/bench";
+import { ListTree, Minus, Square, X, Minimize2, FileBox, RefreshCw, Radar, UploadCloud, Languages, Check, Bot, Eye, PanelLeft, PanelRight, PanelBottom } from "lucide-react";
 import BackgroundPaths from "@/components/ui/BackgroundPaths";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup, ScrollArea, Tooltip, TooltipTrigger, TooltipContent, DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui";
 
@@ -30,6 +30,18 @@ export default function App() {
   const geometryCache = useBlenderStore((s) => s.geometryCache);
   const requestScene = useBlenderStore((s) => s.requestScene);
   const requestGeometry = useBlenderStore((s) => s.requestGeometry);
+  const sendCommand = useBlenderStore((s) => s.sendCommand);
+
+  // Reload addon handler
+  const handleReloadAddon = useCallback(async () => {
+    console.log('[App] Reloading addon...');
+    const result = await sendCommand('addon.reload', '', {});
+    if (result.success) {
+      console.log('[App] Addon reloaded successfully');
+    } else {
+      console.error('[App] Addon reload failed:', result.error);
+    }
+  }, [sendCommand]);
 
   // Local UI state
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -39,8 +51,8 @@ export default function App() {
   const [observeOutgoing, setObserveOutgoing] = useState(true);
   const [currentLang, setCurrentLang] = useState<'en' | 'cs'>(getCurrentLanguage());
   const [viewMode, setViewMode] = useState<ViewMode>('wireframe');
-  const [benchTab, setBenchTab] = useState<'viewer' | 'chat'>('chat');
   const [showLeftPanel, setShowLeftPanel] = useState(true);
+  const [showChatPanel, setShowChatPanel] = useState(true);
   const [showRightPanel, setShowRightPanel] = useState(true);
   const currentNodeId = activeNodeId ?? "GeometryNodeCollectionInfo";
 
@@ -270,14 +282,28 @@ export default function App() {
               {showRightPanel ? 'Skrýt pravý panel' : 'Zobrazit pravý panel'}
             </TooltipContent>
           </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onClick={() => setShowChatPanel(v => !v)}
+                className={`p-1.5 rounded transition-colors ${showChatPanel ? 'text-[var(--blender-orange-light)]' : 'text-[var(--islands-color-text-secondary)] opacity-50'}`}
+                style={{ background: showChatPanel ? 'var(--islands-color-background-elevated)' : 'transparent' }}
+              >
+                <PanelBottom className="size-3.5" />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">
+              {showChatPanel ? 'Skrýt AI chat' : 'Zobrazit AI chat'}
+            </TooltipContent>
+          </Tooltip>
         </div>
       </header>
 
       {/* App content (stack above beams) */}
       <div className="relative flex-1 min-h-0 overflow-hidden">
-        <main className="h-full min-w-0 flex flex-col overflow-hidden p-1.5">
-          <ResizablePanelGroup orientation="horizontal" disableCursor className="h-full">
-            {/* Left Island: Outliner */}
+        <main className="h-full min-w-0 flex flex-col overflow-hidden" style={{ padding: 'var(--islands-panel-gap)' }}>
+          <ResizablePanelGroup orientation="horizontal" disableCursor className="h-full" style={{ gap: 'var(--islands-panel-gap)' }}>
+            {/* Left Island: Scene Panel */}
             {showLeftPanel && (
               <>
                 <ResizablePanel defaultSize={200} minSize={150} maxSize={400}>
@@ -285,7 +311,7 @@ export default function App() {
                     <div className="panel-header justify-between">
                       <div className="flex items-center gap-2">
                         <ListTree className="panel-header__icon" />
-                        <span className="panel-header__title">{t('panels.outliner')}</span>
+                        <span className="panel-header__title">{t('panels.scene')}</span>
                       </div>
                       {isConnected && (
                         <Tooltip>
@@ -303,7 +329,7 @@ export default function App() {
                       )}
                     </div>
                     <ScrollArea className="flex-1 p-2">
-                      <Outliner sceneData={sceneData} selectedId={selectedId} setSelectedId={setSelectedId} observeOutgoing={observeOutgoing} />
+                      <ScenePanel sceneData={sceneData} selectedId={selectedId} setSelectedId={setSelectedId} observeOutgoing={observeOutgoing} />
                     </ScrollArea>
                   </div>
                 </ResizablePanel>
@@ -312,79 +338,70 @@ export default function App() {
               </>
             )}
 
-            {/* Center Island: Bench - 3D Viewer / AI Chat */}
+            {/* Center: 3D Viewer + AI Chat (vertical split) */}
             <ResizablePanel defaultSize={400} minSize={200}>
-              <div className="island h-full flex flex-col overflow-hidden">
-                <div className="panel-header justify-between">
-                  <div className="flex items-center gap-2">
-                    <Activity className="panel-header__icon" />
-                    <span className="panel-header__title">{t('panels.bench')}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {/* Tab buttons */}
-                    <div
-                      className="flex rounded overflow-hidden text-[10px]"
-                      style={{ background: 'var(--islands-color-background-elevated)' }}
-                    >
-                      <button
-                        onClick={() => setBenchTab('chat')}
-                        className="flex items-center gap-1 px-2 py-1 transition-colors"
-                        style={{
-                          background: benchTab === 'chat' ? 'var(--blender-orange-light)' : 'transparent',
-                          color: benchTab === 'chat' ? 'white' : 'var(--islands-color-text-secondary)',
-                        }}
-                      >
-                        <Bot className="w-3 h-3" />
-                        AI
-                      </button>
-                      <button
-                        onClick={() => setBenchTab('viewer')}
-                        className="flex items-center gap-1 px-2 py-1 transition-colors"
-                        style={{
-                          background: benchTab === 'viewer' ? 'var(--blender-orange-light)' : 'transparent',
-                          color: benchTab === 'viewer' ? 'white' : 'var(--islands-color-text-secondary)',
-                        }}
-                      >
-                        <Eye className="w-3 h-3" />
-                        3D
-                      </button>
+              <ResizablePanelGroup orientation="vertical" className="h-full" style={{ gap: 'var(--islands-panel-gap)' }}>
+                {/* 3D Viewer */}
+                <ResizablePanel defaultSize={60} minSize={20}>
+                  <div className="island h-full flex flex-col overflow-hidden">
+                    <div className="panel-header justify-between">
+                      <div className="flex items-center gap-2">
+                        <Eye className="panel-header__icon" />
+                        <span className="panel-header__title">{t('panels.bench')}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <select
+                          value={viewMode}
+                          onChange={(e) => setViewMode(e.target.value as ViewMode)}
+                          className="text-[10px] px-2 py-1 rounded border-0 cursor-pointer"
+                          style={{
+                            background: 'var(--islands-color-background-elevated)',
+                            color: 'var(--islands-color-text-secondary)',
+                          }}
+                        >
+                          <option value="wireframe">Wireframe</option>
+                          <option value="solid">Solid</option>
+                          <option value="xray">X-Ray</option>
+                          <option value="matcap">Matcap</option>
+                          <option value="points">Points</option>
+                        </select>
+                      </div>
                     </div>
-                    {/* View mode select (only for viewer tab) */}
-                    {benchTab === 'viewer' && (
-                      <select
-                        value={viewMode}
-                        onChange={(e) => setViewMode(e.target.value as ViewMode)}
-                        className="text-[10px] px-2 py-1 rounded border-0 cursor-pointer"
-                        style={{
-                          background: 'var(--islands-color-background-elevated)',
-                          color: 'var(--islands-color-text-secondary)',
-                        }}
-                      >
-                        <option value="wireframe">Wireframe</option>
-                        <option value="solid">Solid</option>
-                        <option value="xray">X-Ray</option>
-                        <option value="matcap">Matcap</option>
-                        <option value="points">Points</option>
-                      </select>
-                    )}
+                    <div className="flex-1 min-h-0">
+                      <SceneViewer
+                        objects={sceneData?.objects ?? {}}
+                        geometryCache={geometryCache}
+                        selectedObjectName={selectedId?.startsWith('obj_') ? selectedId.slice(4) : null}
+                        viewMode={viewMode}
+                      />
+                    </div>
                   </div>
-                </div>
-                <div className="flex-1 min-h-0">
-                  {benchTab === 'viewer' ? (
-                    <SceneViewer
-                      objects={sceneData?.objects ?? {}}
-                      geometryCache={geometryCache}
-                      selectedObjectName={selectedId?.startsWith('obj_') ? selectedId.slice(4) : null}
-                      viewMode={viewMode}
-                    />
-                  ) : (
-                    <ChatAssistant
-                      sceneData={sceneData}
-                      selectedObjectName={selectedId?.startsWith('obj_') ? selectedId.slice(4) : null}
-                    />
-                  )}
-                </div>
-              </div>
+                </ResizablePanel>
+
+                {/* AI Chat */}
+                {showChatPanel && (
+                  <>
+                    <ResizableHandle orientation="vertical" />
+
+                    <ResizablePanel defaultSize={40} minSize={15}>
+                      <div className="island h-full flex flex-col overflow-hidden">
+                        <div className="panel-header justify-between">
+                          <div className="flex items-center gap-2">
+                            <Bot className="panel-header__icon" />
+                            <span className="panel-header__title">Mate</span>
+                          </div>
+                        </div>
+                        <div className="flex-1 min-h-0">
+                          <Mate
+                            sceneData={sceneData}
+                            selectedObjectName={selectedId?.startsWith('obj_') ? selectedId.slice(4) : null}
+                          />
+                        </div>
+                      </div>
+                    </ResizablePanel>
+                  </>
+                )}
+              </ResizablePanelGroup>
             </ResizablePanel>
 
             {/* Right Island: Context Panel with Vertical Tabs */}
@@ -399,7 +416,6 @@ export default function App() {
                 </ResizablePanel>
               </>
             )}
-
           </ResizablePanelGroup>
         </main>
       </div>
@@ -489,7 +505,7 @@ export default function App() {
                   </div>
                   <div className="flex items-start gap-2">
                     <span className="mt-1 inline-flex size-1.5 rounded-full" style={{ backgroundColor: 'var(--islands-color-error)' }} />
-                    <span>Vypnuto: aplikuje se filtr (např. neměnit výběr v Outlineru).</span>
+                    <span>Vypnuto: aplikuje se filtr (např. neměnit výběr ve Scéně).</span>
                   </div>
                 </div>
               </TooltipContent>
@@ -527,6 +543,23 @@ export default function App() {
                     <span>Vypnuto: změny se zatím jen připravují.</span>
                   </div>
                 </div>
+              </TooltipContent>
+            </Tooltip>
+
+            {/* Reload Addon Button */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={handleReloadAddon}
+                  className="size-6 rounded-full transition-colors flex items-center justify-center hover:bg-[var(--islands-color-background-elevated)]"
+                  aria-label="Reload Addon"
+                  style={{ color: 'var(--islands-color-text-secondary)' }}
+                >
+                  <RefreshCw className="size-3.5" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="top" className="text-[11px]">
+                Reload Blender Addon
               </TooltipContent>
             </Tooltip>
           </div>
