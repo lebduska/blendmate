@@ -3,11 +3,18 @@
  * Displays wireframe preview of Blender objects with real geometry
  */
 
-import { useMemo, useRef } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
-import { OrbitControls, Grid, GizmoHelper, GizmoViewport, Text } from '@react-three/drei';
+import { useMemo, useRef, useEffect, useState } from 'react';
+import { Canvas, useFrame, useThree } from '@react-three/fiber';
+import { OrbitControls, Grid, GizmoHelper, GizmoViewport } from '@react-three/drei';
 import * as THREE from 'three';
+import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import type { BlenderObject, CachedGeometry } from '@/stores/blenderStore';
+
+// Animation state for camera transitions
+interface CameraTarget {
+  position: THREE.Vector3;
+  lookAt: THREE.Vector3;
+}
 
 export type ViewMode = 'wireframe' | 'solid' | 'xray' | 'matcap' | 'points';
 
@@ -208,8 +215,18 @@ function PlaceholderMesh({ object }: ObjectMeshProps) {
 
 // Main object renderer - chooses between real geometry and placeholder
 function ObjectMesh({ object, geometry, viewMode }: ObjectMeshProps) {
+  // Debug: log why we're using placeholder vs real geometry
+  const useRealGeometry = geometry && !geometry.skipped && geometry.vertices.length > 0;
+
+  console.log(`[SceneViewer] ObjectMesh "${object.name}":`, {
+    hasGeometry: !!geometry,
+    skipped: geometry?.skipped,
+    vertexCount: geometry?.vertices?.length || 0,
+    useRealGeometry,
+  });
+
   // Use cached geometry if available and not skipped
-  if (geometry && !geometry.skipped && geometry.vertices.length > 0) {
+  if (useRealGeometry) {
     return <RealGeometryMesh object={object} geometry={geometry} viewMode={viewMode} />;
   }
 
@@ -217,151 +234,163 @@ function ObjectMesh({ object, geometry, viewMode }: ObjectMeshProps) {
   return <PlaceholderMesh object={object} viewMode={viewMode} />;
 }
 
-// Animated planet component
-function Planet({
-  radius,
-  color,
-  orbitRadius,
-  orbitSpeed,
-  hasRing
-}: {
-  radius: number;
-  color: string;
-  orbitRadius: number;
-  orbitSpeed: number;
-  hasRing?: boolean;
-}) {
-  const ref = useRef<THREE.Group>(null);
+// Earth-centric placeholder animation
+function EarthCentric() {
+  const earthRef = useRef<THREE.Mesh>(null);
+  const moonRef = useRef<THREE.Mesh>(null);
 
   useFrame(({ clock }) => {
-    if (ref.current) {
-      const t = clock.getElapsedTime() * orbitSpeed;
-      ref.current.position.x = Math.cos(t) * orbitRadius;
-      ref.current.position.z = Math.sin(t) * orbitRadius;
-    }
-  });
-
-  return (
-    <group ref={ref}>
-      <mesh>
-        <sphereGeometry args={[radius, 16, 16]} />
-        <meshStandardMaterial color={color} wireframe />
-      </mesh>
-      {hasRing && (
-        <mesh rotation={[Math.PI / 2, 0, 0]}>
-          <ringGeometry args={[radius * 1.4, radius * 2, 32]} />
-          <meshBasicMaterial color={color} side={THREE.DoubleSide} transparent opacity={0.5} />
-        </mesh>
-      )}
-    </group>
-  );
-}
-
-// Moon orbiting a planet
-function Moon({ parentRef, radius, orbitRadius, orbitSpeed, color }: {
-  parentRef: React.RefObject<THREE.Group | null>;
-  radius: number;
-  orbitRadius: number;
-  orbitSpeed: number;
-  color: string;
-}) {
-  const ref = useRef<THREE.Mesh>(null);
-
-  useFrame(({ clock }) => {
-    if (ref.current && parentRef.current) {
-      const t = clock.getElapsedTime() * orbitSpeed;
-      ref.current.position.x = parentRef.current.position.x + Math.cos(t) * orbitRadius;
-      ref.current.position.z = parentRef.current.position.z + Math.sin(t) * orbitRadius;
-      ref.current.position.y = Math.sin(t * 0.5) * 0.1;
-    }
-  });
-
-  return (
-    <mesh ref={ref}>
-      <sphereGeometry args={[radius, 8, 8]} />
-      <meshStandardMaterial color={color} wireframe />
-    </mesh>
-  );
-}
-
-// Earth with Moon
-function EarthSystem() {
-  const earthRef = useRef<THREE.Group>(null);
-
-  useFrame(({ clock }) => {
+    const t = clock.getElapsedTime();
+    // Slowly rotate Earth
     if (earthRef.current) {
-      const t = clock.getElapsedTime() * 0.3;
-      earthRef.current.position.x = Math.cos(t) * 3;
-      earthRef.current.position.z = Math.sin(t) * 3;
+      earthRef.current.rotation.y = t * 0.1;
     }
-  });
-
-  return (
-    <>
-      <group ref={earthRef}>
-        <mesh>
-          <sphereGeometry args={[0.25, 16, 16]} />
-          <meshStandardMaterial color="#3b82f6" wireframe />
-        </mesh>
-      </group>
-      <Moon parentRef={earthRef} radius={0.08} orbitRadius={0.5} orbitSpeed={2} color="#9ca3af" />
-    </>
-  );
-}
-
-// Solar system placeholder animation
-function SolarSystem() {
-  const sunRef = useRef<THREE.Mesh>(null);
-
-  useFrame(({ clock }) => {
-    if (sunRef.current) {
-      sunRef.current.rotation.y = clock.getElapsedTime() * 0.1;
+    // Moon orbits Earth
+    if (moonRef.current) {
+      moonRef.current.position.x = Math.cos(t * 0.5) * 2;
+      moonRef.current.position.z = Math.sin(t * 0.5) * 2;
+      moonRef.current.position.y = Math.sin(t * 0.3) * 0.3;
     }
   });
 
   return (
     <group>
-      {/* Sun */}
-      <mesh ref={sunRef}>
-        <sphereGeometry args={[0.5, 24, 24]} />
-        <meshStandardMaterial color="#f59e0b" emissive="#f59e0b" emissiveIntensity={0.3} wireframe />
+      {/* Earth - center of attention */}
+      <mesh ref={earthRef}>
+        <sphereGeometry args={[1, 32, 32]} />
+        <meshStandardMaterial color="#3b82f6" wireframe />
       </mesh>
 
-      {/* Mercury */}
-      <Planet radius={0.1} color="#9ca3af" orbitRadius={1.2} orbitSpeed={1.5} />
+      {/* Moon */}
+      <mesh ref={moonRef}>
+        <sphereGeometry args={[0.27, 16, 16]} />
+        <meshStandardMaterial color="#9ca3af" wireframe />
+      </mesh>
 
-      {/* Venus */}
-      <Planet radius={0.2} color="#fbbf24" orbitRadius={2} orbitSpeed={0.8} />
-
-      {/* Earth + Moon */}
-      <EarthSystem />
-
-      {/* Mars */}
-      <Planet radius={0.15} color="#ef4444" orbitRadius={4} orbitSpeed={0.4} />
-
-      {/* Saturn with rings */}
-      <Planet radius={0.35} color="#d4a574" orbitRadius={5.5} orbitSpeed={0.15} hasRing />
-
-      {/* Orbit lines */}
-      {[1.2, 2, 3, 4, 5.5].map((r) => (
-        <mesh key={r} rotation={[Math.PI / 2, 0, 0]}>
-          <ringGeometry args={[r - 0.01, r + 0.01, 64]} />
-          <meshBasicMaterial color="#333" side={THREE.DoubleSide} transparent opacity={0.3} />
-        </mesh>
-      ))}
-
-      {/* Hint text */}
-      <Text
-        position={[0, -2, 0]}
-        fontSize={0.3}
-        color="#666"
-        anchorX="center"
-        anchorY="middle"
-      >
-        Select an object in the Outliner
-      </Text>
+      {/* Orbit line for moon */}
+      <mesh rotation={[Math.PI / 2, 0, 0]}>
+        <ringGeometry args={[1.99, 2.01, 64]} />
+        <meshBasicMaterial color="#333" side={THREE.DoubleSide} transparent opacity={0.3} />
+      </mesh>
     </group>
   );
+}
+
+// Camera controller for smooth transitions when object selection changes
+interface CameraControllerProps {
+  targetPosition: THREE.Vector3 | null;
+  targetLookAt: THREE.Vector3 | null;
+  controlsRef: React.RefObject<OrbitControlsImpl | null>;
+}
+
+function CameraController({ targetPosition, targetLookAt, controlsRef }: CameraControllerProps) {
+  const { camera } = useThree();
+  const isAnimating = useRef(false);
+  const animationProgress = useRef(0);
+  const startPosition = useRef(new THREE.Vector3());
+  const startTarget = useRef(new THREE.Vector3());
+  const endPosition = useRef(new THREE.Vector3());
+  const endTarget = useRef(new THREE.Vector3());
+
+  // Start animation when target changes
+  useEffect(() => {
+    if (targetPosition && targetLookAt && controlsRef.current) {
+      // Store start positions
+      startPosition.current.copy(camera.position);
+      startTarget.current.copy(controlsRef.current.target);
+
+      // Store end positions
+      endPosition.current.copy(targetPosition);
+      endTarget.current.copy(targetLookAt);
+
+      // Start animation
+      animationProgress.current = 0;
+      isAnimating.current = true;
+    }
+  }, [targetPosition, targetLookAt, camera, controlsRef]);
+
+  useFrame((_, delta) => {
+    if (!isAnimating.current || !controlsRef.current) return;
+
+    // Smooth animation using easing
+    animationProgress.current += delta * 2; // Animation speed
+    const t = Math.min(animationProgress.current, 1);
+
+    // Ease out cubic for smooth deceleration
+    const eased = 1 - Math.pow(1 - t, 3);
+
+    // Lerp camera position
+    camera.position.lerpVectors(startPosition.current, endPosition.current, eased);
+
+    // Lerp controls target
+    controlsRef.current.target.lerpVectors(startTarget.current, endTarget.current, eased);
+    controlsRef.current.update();
+
+    // Stop animation when complete
+    if (t >= 1) {
+      isAnimating.current = false;
+    }
+  });
+
+  return null;
+}
+
+// Calculate optimal camera position for viewing an object
+function calculateCameraTarget(
+  geometry: CachedGeometry | undefined,
+  object: BlenderObject
+): CameraTarget {
+  let center = new THREE.Vector3();
+  let size = 2;
+
+  if (geometry && geometry.vertices.length > 0) {
+    // Calculate bounding box from vertices
+    const vertices = geometry.vertices;
+    const min = new THREE.Vector3(Infinity, Infinity, Infinity);
+    const max = new THREE.Vector3(-Infinity, -Infinity, -Infinity);
+
+    for (let i = 0; i < vertices.length; i += 3) {
+      // Apply coordinate swap (Blender Y/Z to Three.js)
+      const x = vertices[i];
+      const y = vertices[i + 2];    // Z -> Y
+      const z = -vertices[i + 1];   // -Y -> Z
+
+      min.x = Math.min(min.x, x);
+      min.y = Math.min(min.y, y);
+      min.z = Math.min(min.z, z);
+      max.x = Math.max(max.x, x);
+      max.y = Math.max(max.y, y);
+      max.z = Math.max(max.z, z);
+    }
+
+    center = new THREE.Vector3().addVectors(min, max).multiplyScalar(0.5);
+    size = Math.max(max.x - min.x, max.y - min.y, max.z - min.z);
+  } else if (object.dimensions && object.dimensions.length >= 3) {
+    // Use object dimensions as fallback
+    const [dx, dy, dz] = object.dimensions;
+    size = Math.max(dx, dy, dz) || 2;
+
+    // Use object location with coordinate swap
+    if (object.location && object.location.length >= 3) {
+      center = new THREE.Vector3(
+        object.location[0],
+        object.location[2],
+        -object.location[1]
+      );
+    }
+  }
+
+  // Calculate camera distance based on size (ensure we can see the whole object)
+  const distance = Math.max(size * 2.5, 4);
+
+  // Position camera at 45-degree angle
+  const position = new THREE.Vector3(
+    center.x + distance * 0.7,
+    center.y + distance * 0.5,
+    center.z + distance * 0.7
+  );
+
+  return { position, lookAt: center };
 }
 
 interface SceneViewerProps {
@@ -372,14 +401,42 @@ interface SceneViewerProps {
 }
 
 function Scene({ objects, geometryCache, selectedObjectName, viewMode = 'wireframe' }: SceneViewerProps) {
+  const controlsRef = useRef<OrbitControlsImpl>(null);
+  const [cameraTarget, setCameraTarget] = useState<CameraTarget | null>(null);
+  const prevSelectedRef = useRef<string | null>(null);
+
   // Only show the active/selected object
   const activeObject = selectedObjectName ? objects[selectedObjectName] : null;
+
+  // Calculate camera target when selection changes
+  useEffect(() => {
+    if (selectedObjectName && selectedObjectName !== prevSelectedRef.current && activeObject) {
+      const geometry = geometryCache[selectedObjectName];
+      const target = calculateCameraTarget(geometry, activeObject);
+      setCameraTarget(target);
+      prevSelectedRef.current = selectedObjectName;
+    } else if (!selectedObjectName && prevSelectedRef.current) {
+      // Reset to default view when deselecting
+      setCameraTarget({
+        position: new THREE.Vector3(8, 6, 8),
+        lookAt: new THREE.Vector3(0, 0, 0)
+      });
+      prevSelectedRef.current = null;
+    }
+  }, [selectedObjectName, activeObject, geometryCache]);
 
   return (
     <>
       {/* Lighting */}
       <ambientLight intensity={0.5} />
       <directionalLight position={[10, 10, 5]} intensity={1} />
+
+      {/* Camera controller for smooth transitions */}
+      <CameraController
+        targetPosition={cameraTarget?.position ?? null}
+        targetLookAt={cameraTarget?.lookAt ?? null}
+        controlsRef={controlsRef}
+      />
 
       {activeObject && selectedObjectName ? (
         <>
@@ -406,12 +463,13 @@ function Scene({ objects, geometryCache, selectedObjectName, viewMode = 'wirefra
           />
         </>
       ) : (
-        /* Show solar system when no object selected */
-        <SolarSystem />
+        /* Show Earth when no object selected */
+        <EarthCentric />
       )}
 
       {/* Controls */}
       <OrbitControls
+        ref={controlsRef}
         makeDefault
         enableDamping
         dampingFactor={0.05}
