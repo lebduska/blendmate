@@ -68,7 +68,6 @@ def cmd_property_set(target: str, params: Dict[str, Any]) -> Dict[str, Any]:
             # Split target into object path and property path
             # e.g. "objects['Cube'].modifiers['Solidify'].thickness" ->
             #      object: "objects['Cube']", path: "modifiers['Solidify'].thickness"
-            # Find the first '].' after 'objects[' or similar root
             import re
             match = re.match(r"^(\w+\['[^']+'\])(\.(.+))?$", target)
             if match:
@@ -76,10 +75,31 @@ def cmd_property_set(target: str, params: Dict[str, Any]) -> Dict[str, Any]:
                 path = match.group(3) or ""   # e.g. "modifiers['Solidify'].thickness"
                 target = obj_target
             else:
-                return {"success": False, "error": f"Cannot parse target path: {target}"}
+                return {"success": False, "error": f"Cannot parse target path: {target}. Expected format: collection['name'].property"}
+
+        if not path:
+            return {"success": False, "error": "Property path is required"}
+
+        # Resolve the target object first to check it exists
+        try:
+            obj = resolve_path(target)
+        except Exception as e:
+            return {"success": False, "error": f"Cannot resolve target '{target}': {e}"}
+
+        # Handle special cases for modifier properties
+        # If value is a string that looks like an object reference (e.g., "Cube" for Boolean.object)
+        if isinstance(value, str) and path.endswith('.object'):
+            # Try to resolve as object reference
+            if value in bpy.data.objects:
+                value = bpy.data.objects[value]
+            else:
+                return {"success": False, "error": f"Object '{value}' not found for reference"}
 
         # Push undo state before making changes
-        bpy.ops.ed.undo_push(message=f"Blendmate: Set {target}.{path}")
+        try:
+            bpy.ops.ed.undo_push(message=f"Blendmate: Set {target}.{path}")
+        except Exception:
+            pass  # Undo push might fail in some contexts, continue anyway
 
         set_property(target, path, value)
 
@@ -88,7 +108,8 @@ def cmd_property_set(target: str, params: Dict[str, Any]) -> Dict[str, Any]:
         return {"success": True, "data": new_value}
 
     except Exception as e:
-        return {"success": False, "error": str(e)}
+        import traceback
+        return {"success": False, "error": f"{str(e)}\n{traceback.format_exc()}"}
 
 
 @register_command("property.set_batch")
@@ -716,6 +737,51 @@ def _get_primitive_meshes() -> list:
         "plane", "cube", "circle", "uv_sphere", "ico_sphere",
         "cylinder", "cone", "torus", "grid", "monkey"
     ]
+
+
+@register_command("addon.reload")
+def cmd_addon_reload(target: str, params: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Reload the Blendmate addon.
+
+    This safely disables and re-enables the addon, reloading all Python modules.
+    Useful for development when addon code has changed.
+
+    Returns:
+        {"success": True} or {"success": False, "error": "..."}
+    """
+    import sys
+
+    try:
+        # Get the addon module name
+        package_name = __package__.split('.')[0] if __package__ and '.' in __package__ else __package__
+        if not package_name:
+            package_name = "blendmate-addon"
+
+        print(f"[Blendmate] Reloading addon: {package_name}")
+
+        # Try to unregister first
+        try:
+            if package_name in sys.modules:
+                root = sys.modules[package_name]
+                if hasattr(root, "unregister"):
+                    root.unregister()
+        except Exception as e:
+            print(f"[Blendmate] Unregister warning: {e}")
+
+        # Disable and re-enable the addon
+        try:
+            bpy.ops.preferences.addon_disable(module=package_name)
+        except Exception as e:
+            print(f"[Blendmate] Disable warning: {e}")
+
+        bpy.ops.preferences.addon_enable(module=package_name)
+
+        print("[Blendmate] Addon reloaded successfully")
+        return {"success": True, "data": {"reloaded": True}}
+
+    except Exception as e:
+        return {"success": False, "error": str(e)}
 
 
 def handle_command(action: str, target: str, params: Dict[str, Any]) -> Dict[str, Any]:
