@@ -9,21 +9,100 @@ try:
 except ModuleNotFoundError:
     from .vendor import websocket
 
+# Protocol import
+try:
+    from . import protocol
+    _protocol_available = True
+except ImportError:
+    _protocol_available = False
+
 # Global connection state
+# Use module-level caching to preserve state across reloads
+# IMPORTANT: Get old module reference FIRST before any state access
+import sys
+_old_module = sys.modules.get(__name__)
+
 _ws = None
-_thread = None
-_should_run = threading.Event()
+
+# Preserve thread reference across reloads
+if _old_module and hasattr(_old_module, '_thread'):
+    _thread = _old_module._thread
+    print(f"[Blendmate] Reusing existing thread (alive={_thread.is_alive() if _thread else False})")
+else:
+    _thread = None
+
+# IMPORTANT: Preserve Event across module reloads to avoid thread desync
+# When module is reloaded, a new Event would be created but old thread
+# would still reference the old Event - causing communication breakdown
+if _old_module and hasattr(_old_module, '_should_run'):
+    _should_run = _old_module._should_run
+    print(f"[Blendmate] Reusing existing _should_run Event (is_set={_should_run.is_set()})")
+else:
+    _should_run = threading.Event()
+    print("[Blendmate] Created new _should_run Event")
+
 _last_node_id = None
-_message_queue = queue.Queue()
-_pending_requests = queue.Queue()  # Requests from Blendmate to process in main thread
+
+# Also preserve queues across reloads to avoid losing messages
+if _old_module and hasattr(_old_module, '_message_queue'):
+    _message_queue = _old_module._message_queue
+    _pending_requests = _old_module._pending_requests
+    print(f"[Blendmate] Reusing existing queues (msg={_message_queue.qsize()}, req={_pending_requests.qsize()})")
+else:
+    _message_queue = queue.Queue()
+    _pending_requests = queue.Queue()  # Requests from Blendmate to process in main thread
+    print("[Blendmate] Created new queues")
+
+# Protocol session state
+# Starts in LEGACY mode, upgrades via protocol.upgrade request
+_session_protocol_version = 0  # 0 = legacy, 1 = protocol v1
+SUPPORTED_PROTOCOL_VERSIONS = [1]
+
+
+def get_session_protocol_version():
+    """Get current session protocol version. 0 = legacy, 1+ = protocol v1."""
+    return _session_protocol_version
+
+
+def is_protocol_v1():
+    """Check if session is using protocol v1."""
+    return _session_protocol_version >= 1
 
 def info(msg):
     print(f"[Blendmate] {msg}")
 
 def send_to_blendmate(data):
-    """Adds a message to the queue to be sent by the timer."""
+    """
+    Adds a message to the queue to be sent by the timer.
+
+    In legacy mode (v0): sends raw legacy messages
+    In protocol v1: sends envelope format only
+    """
     global _message_queue
-    _message_queue.put(data)
+
+    if is_protocol_v1() and _protocol_available:
+        # Protocol v1 mode - ensure envelope format
+        if "v" in data and "body" in data:
+            # Already an envelope - send as-is
+            _message_queue.put(data)
+        else:
+            # Legacy message in v1 mode - wrap it (shouldn't happen often)
+            envelope = protocol.wrap_legacy_message(data)
+            _message_queue.put(envelope)
+    else:
+        # Legacy mode - send raw messages only
+        # Strip any envelope wrapper if present
+        if "v" in data and "body" in data:
+            # Extract legacy from envelope body if available
+            body = data.get("body", {})
+            legacy = body.get("_legacy")
+            if legacy:
+                _message_queue.put(legacy)
+            else:
+                # No legacy available, construct from body
+                _message_queue.put(body)
+        else:
+            _message_queue.put(data)
 
 # ============== Scene Introspection ==============
 
@@ -374,40 +453,133 @@ except ImportError as e:
 
 def handle_request(request_data):
     """Handle incoming request from Blendmate and return response."""
+    global _session_protocol_version
+
     action = request_data.get("action")
     request_id = request_data.get("id", "unknown")
     target = request_data.get("target", "")
     params = request_data.get("params", {})
 
-    info(f"Handling request: {action} (id: {request_id})")
+    info(f"Handling request: {action} (id: {request_id}) [protocol v{_session_protocol_version}]")
 
-    response = {
-        "type": "response",
-        "id": request_id,
-        "action": action,
-    }
+    # Helper to create responses - always uses CURRENT session protocol
+    # Note: protocol.upgrade response is always legacy (before upgrade completes)
+    def make_response(data=None, error=None, error_code=None, warnings=None, force_legacy=False):
+        use_v1 = is_protocol_v1() and _protocol_available and not force_legacy
+
+        if use_v1:
+            # Protocol v1 response (clean envelope, no legacy fields)
+            if error:
+                return protocol.create_response(
+                    request_id=request_id,
+                    ok=False,
+                    error_code=error_code or protocol.ErrorCode.INTERNAL_ERROR,
+                    error_message=error,
+                    action=action,
+                )
+            else:
+                return protocol.create_response(
+                    request_id=request_id,
+                    ok=True,
+                    data=data,
+                    warnings=warnings,
+                    action=action,
+                )
+        else:
+            # Legacy response format
+            resp = {"type": "response", "id": request_id, "action": action}
+            if error:
+                resp["error"] = error
+                if error_code:
+                    resp["error_code"] = error_code.value if hasattr(error_code, 'value') else error_code
+            else:
+                resp["ok"] = True
+                resp["data"] = data
+                if warnings:
+                    resp["warnings"] = warnings
+            return resp
 
     try:
+        # Protocol upgrade request (always responds in legacy format)
+        if action == "protocol.upgrade":
+            requested_version = params.get("version")
+
+            # Validate params
+            if requested_version is None:
+                return make_response(
+                    error="Missing 'version' parameter",
+                    error_code=protocol.ErrorCode.INVALID_PARAMS if _protocol_available else "INVALID_PARAMS",
+                    force_legacy=True,
+                )
+
+            # Check if version is supported
+            if requested_version not in SUPPORTED_PROTOCOL_VERSIONS:
+                return make_response(
+                    error=f"Unsupported protocol version: {requested_version}",
+                    error_code=protocol.ErrorCode.UNSUPPORTED_VERSION if _protocol_available else "UNSUPPORTED_VERSION",
+                    data={"supported_versions": SUPPORTED_PROTOCOL_VERSIONS},
+                    force_legacy=True,
+                )
+
+            # Upgrade successful (idempotent - ok even if already upgraded)
+            old_version = _session_protocol_version
+            _session_protocol_version = requested_version
+            info(f"Protocol upgraded: v{old_version} → v{_session_protocol_version}")
+
+            # Send legacy response first (before we're in v1 mode for this response)
+            response = make_response(
+                data={"version": _session_protocol_version},
+                force_legacy=True,
+            )
+
+            # Queue the response
+            _message_queue.put(response)
+
+            # After upgrade, send v1 event.scene.connected as confirmation
+            if _protocol_available and _session_protocol_version >= 1:
+                blender_version = ".".join(str(v) for v in bpy.app.version[:3])
+                addon_version = "1.0.0"
+                filepath = bpy.data.filepath or "(unsaved)"
+
+                connected_event = protocol.create_event(
+                    "event.scene.connected",
+                    protocol.event_scene_connected(
+                        blender_version=blender_version,
+                        addon_version=addon_version,
+                        filepath=filepath,
+                    ),
+                )
+                # Don't include legacy fields in v1 mode
+                _message_queue.put(connected_event)
+                info("Sent v1 event.scene.connected as upgrade confirmation")
+
+            # Return None to skip normal response sending (we already queued it)
+            return None
+
         # Built-in actions
         if action == "get_scene":
             data = get_scene_data()
-            response["data"] = data
             # Log summary
             if data and "objects" in data:
                 info(f"  Scene: {data.get('scene', {}).get('name', '?')}, objects: {len(data.get('objects', {}))}")
             else:
                 info(f"  Scene data: {data}")
+            return make_response(data=data)
+
         elif action == "get_gn_context":
-            response["data"] = get_active_gn_context()
+            return make_response(data=get_active_gn_context())
+
         elif action == "get_geometry":
             # Get geometry for specified objects or all
             object_names = params.get("objects")  # None = all mesh objects
             max_verts = params.get("max_verts", 50000)
             data = get_all_geometry(object_names, max_verts)
-            response["data"] = data
             info(f"  Geometry: {len(data)} objects")
+            return make_response(data=data)
+
         elif action == "ping":
-            response["data"] = {"pong": True, "time": time.time()}
+            return make_response(data={"pong": True, "time": time.time()})
+
         elif action == "get_capabilities":
             # Get capabilities from command handler or return basic info
             info(f"get_capabilities: _commands_available={_commands_available}, 'get_capabilities' in COMMAND_HANDLERS={'get_capabilities' in COMMAND_HANDLERS if _commands_available else 'N/A'}")
@@ -416,38 +588,58 @@ def handle_request(request_data):
                 if result.get("success"):
                     data = result.get("data", {})
                     info(f"Capabilities loaded: {len(data.get('operators', {}))} operators, {len(data.get('modifiers', {}))} modifiers")
-                    response["data"] = data
+                    return make_response(data=data)
                 else:
-                    response["error"] = result.get("error", "Failed to get capabilities")
-                    info(f"Capabilities error: {response['error']}")
+                    error_msg = result.get("error", "Failed to get capabilities")
+                    info(f"Capabilities error: {error_msg}")
+                    return make_response(error=error_msg, error_code=protocol.ErrorCode.INTERNAL_ERROR if _protocol_available else None)
             else:
                 # Fallback: return minimal capabilities
-                response["data"] = {
+                data = {
                     "operators": {},
                     "modifiers": {},
                     "object_types": ["MESH", "CURVE", "LIGHT", "CAMERA", "EMPTY"],
                     "primitive_meshes": ["cube", "cylinder", "sphere", "plane", "torus"],
                 }
                 info(f"Warning: Full capabilities not available, using fallback. _commands_available={_commands_available}")
+                return make_response(data=data)
+
         # Command handlers (property.set, property.get, operator.call, etc.)
         elif _commands_available and action in COMMAND_HANDLERS:
             result = dispatch_command(action, target, params)
             if result.get("success"):
-                response["data"] = result.get("data")
-                if result.get("warnings"):
-                    response["warnings"] = result["warnings"]
+                return make_response(data=result.get("data"), warnings=result.get("warnings"))
             else:
-                response["error"] = result.get("error", "Unknown error")
+                # Map command errors to protocol error codes
+                error_msg = result.get("error", "Unknown error")
+                error_code = None
+                if _protocol_available:
+                    if "not found" in error_msg.lower():
+                        error_code = protocol.ErrorCode.NOT_FOUND
+                    elif "invalid" in error_msg.lower() or "param" in error_msg.lower():
+                        error_code = protocol.ErrorCode.INVALID_PARAMS
+                    elif "context" in error_msg.lower() or "mode" in error_msg.lower():
+                        error_code = protocol.ErrorCode.INVALID_CONTEXT
+                    elif "operator" in error_msg.lower():
+                        error_code = protocol.ErrorCode.OPERATOR_FAILED
+                    else:
+                        error_code = protocol.ErrorCode.INTERNAL_ERROR
+                return make_response(error=error_msg, error_code=error_code)
+
         else:
-            response["error"] = f"Unknown action: {action}"
+            return make_response(
+                error=f"Unknown action: {action}",
+                error_code=protocol.ErrorCode.NOT_FOUND if _protocol_available else None
+            )
+
     except Exception as e:
-        response["error"] = str(e)
         info(f"Error handling request: {e}")
         import traceback
         traceback.print_exc()
-
-    info(f"Sending response: {len(json.dumps(response))} bytes")
-    return response
+        return make_response(
+            error=str(e),
+            error_code=protocol.ErrorCode.INTERNAL_ERROR if _protocol_available else None
+        )
 
 _request_timer_running = False
 
@@ -472,7 +664,9 @@ def process_pending_requests():
             request_data = _pending_requests.get_nowait()
             info(f"Dequeued: {request_data.get('action')}")
             response = handle_request(request_data)
-            send_to_blendmate(response)
+            # Some handlers (like protocol.upgrade) handle their own response
+            if response is not None:
+                send_to_blendmate(response)
             _pending_requests.task_done()
         except queue.Empty:
             break
@@ -528,12 +722,20 @@ def send_heartbeat():
             except:
                 pass
 
-            send_to_blendmate({
-                "type": "heartbeat",
-                "active_object": active_obj,
-                "mode": mode,
-                "filepath": bpy.data.filepath or "(unsaved)",
-            })
+            filepath = bpy.data.filepath or "(unsaved)"
+
+            if is_protocol_v1() and _protocol_available:
+                # Native protocol format
+                heartbeat = protocol.create_heartbeat(active_obj, mode, filepath)
+                _message_queue.put(heartbeat)
+            else:
+                # Legacy format
+                send_to_blendmate({
+                    "type": "heartbeat",
+                    "active_object": active_obj,
+                    "mode": mode,
+                    "filepath": filepath,
+                })
         except Exception as e:
             info(f"Heartbeat error: {e}")
 
@@ -594,13 +796,27 @@ def ws_thread():
             info(f"Attempting connection to {url}...")
 
             def on_open(ws):
+                global _session_protocol_version
                 info("WS Connected (on_open)")
-                # Send initial connection event with basic info
-                send_to_blendmate({
+
+                # Reset to legacy mode on new connection
+                _session_protocol_version = 0
+                info("Session protocol reset to legacy (v0)")
+
+                # Send initial connection event in LEGACY format
+                # App will upgrade if it supports v1
+                blender_version = ".".join(str(v) for v in bpy.app.version[:3])
+                addon_version = "1.0.0"
+                filepath = bpy.data.filepath or "(unsaved)"
+
+                # Always send legacy format on connect
+                _message_queue.put({
                     "type": "event",
                     "event": "connected",
-                    "blender_version": ".".join(str(v) for v in bpy.app.version[:3]),
-                    "filepath": bpy.data.filepath or "(unsaved)",
+                    "blender_version": blender_version,
+                    "addon_version": addon_version,
+                    "filepath": filepath,
+                    "supported_protocol_versions": SUPPORTED_PROTOCOL_VERSIONS,
                 })
 
             _ws = websocket.WebSocketApp(url,
@@ -618,16 +834,22 @@ def ws_thread():
 
         # Pokud máme stále běžet, počkáme před dalším pokusem
         if _should_run.is_set():
-            info("Connection lost. Waiting 5s before reconnect...")
-            _should_run.wait(timeout=5)
+            info("Connection lost. Waiting 2s before reconnect...")
+            _should_run.wait(timeout=2)
 
     info("WS Thread exiting (should_run is False)")
 
 def register():
     global _thread
     info("Registering Connection module")
-    
+
     # Timer registration is now handled by events.registry module
+
+    # Check if old thread is still running (can happen during reload)
+    if _thread and _thread.is_alive():
+        info("Old WS thread still running - reusing it")
+        _should_run.set()  # Make sure it's enabled
+        return
 
     # Start WS thread
     _should_run.set()
