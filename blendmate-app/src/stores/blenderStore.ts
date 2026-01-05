@@ -610,16 +610,20 @@ export const useBlenderStore = create<BlenderState>()(
           const sceneData = responseData as unknown as BlenderSceneData;
           set({ sceneData });
 
-          // Auto-request geometry for all mesh objects (if not already loading)
-          const meshObjects = Object.entries(sceneData.objects)
-            .filter(([_, obj]) => obj.type === 'MESH')
+          // Types that can be converted to mesh geometry
+          // CURVE = legacy Bezier/NURBS, CURVES = new hair curves (Blender 3.3+)
+          const GEOMETRY_TYPES = ['MESH', 'CURVE', 'CURVES', 'SURFACE', 'FONT', 'META'];
+
+          // Auto-request geometry for all convertible objects (if not already loading)
+          const geometryObjects = Object.entries(sceneData.objects)
+            .filter(([_, obj]) => GEOMETRY_TYPES.includes(obj.type))
             .map(([name]) => name);
 
           const currentCache = get().geometryCache;
-          const missingGeometry = meshObjects.filter(name => !currentCache[name]);
+          const missingGeometry = geometryObjects.filter(name => !currentCache[name]);
 
           if (missingGeometry.length > 0 && !get().geometryLoading) {
-            console.log('[BlenderStore] Auto-requesting geometry for', missingGeometry.length, 'mesh objects:', missingGeometry);
+            console.log('[BlenderStore] Auto-requesting geometry for', missingGeometry.length, 'objects:', missingGeometry);
             get().requestGeometry(missingGeometry);
           }
         } else if (action === 'get_geometry' && responseData) {

@@ -137,6 +137,12 @@
     "colorTag": "Barevný štítek",
     "lineArt": "Line Art"
   },
+  "influence": {
+    "noObject": "Není vybrán žádný objekt",
+    "selectObject": "Vyber objekt ve scéně pro zobrazení jeho vlivů",
+    "pipeline": "Pipeline",
+    "noModifiers": "Žádné modifikátory ani materiály"
+  },
   "modifiers": {
     "types": {
       "NODES": "Procedurální stack založený na node grafu (Geometry Nodes).",
@@ -155,7 +161,30 @@
       "ARMATURE": "Deformuje mesh pomocí kostí.",
       "CLOTH": "Simuluje chování látky.",
       "FLUID": "Simuluje chování kapaliny nebo plynu.",
-      "COLLISION": "Umožňuje interakci s fyzikálními simulacemi."
+      "COLLISION": "Umožňuje interakci s fyzikálními simulacemi.",
+      "SMOOTH": "Vyhlazuje pozice vertexů.",
+      "LAPLACIANSMOOTH": "Vyhlazuje mesh při zachování objemu.",
+      "CORRECTIVE_SMOOTH": "Opravuje artefakty deformace meshe.",
+      "CAST": "Tvaruje mesh směrem ke kouli, válci nebo krychli.",
+      "CURVE": "Deformuje mesh podél křivky.",
+      "WAVE": "Přidává animovaný vlnový pohyb.",
+      "HOOK": "Deformuje vertexy pomocí empty nebo kosti.",
+      "LATTICE": "Deformuje mesh pomocí lattice klece.",
+      "MESH_DEFORM": "Deformuje mesh pomocí jiného meshe jako klece.",
+      "SURFACE_DEFORM": "Váže mesh k povrchu jiného objektu.",
+      "WARP": "Deformuje mesh mezi dvěma body.",
+      "SCREW": "Vytváří rotační geometrii z profilu.",
+      "SKIN": "Vytváří mesh z kostry struktury.",
+      "REMESH": "Přestaví mesh s uniformní topologií.",
+      "BUILD": "Animuje konstrukci geometrie.",
+      "WIREFRAME": "Převádí hrany na drátové trubky.",
+      "EDGE_SPLIT": "Rozděluje hrany podle úhlu nebo značky.",
+      "MASK": "Skrývá části meshe podle vertex group.",
+      "MULTIRES": "Víceúrovňová subdivize s podporou sculptingu.",
+      "SOFT_BODY": "Simuluje měkké, elastické chování.",
+      "PARTICLE_SYSTEM": "Generuje částice pro vlasy, efekty.",
+      "DYNAMIC_PAINT": "Maluje nebo deformuje na základě interakce.",
+      "OCEAN": "Generuje animovaný povrch oceánu."
     },
     "noModifiers": "Žádné modifikátory."
   },

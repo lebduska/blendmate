@@ -137,6 +137,12 @@
     "colorTag": "Color Tag",
     "lineArt": "Line Art"
   },
+  "influence": {
+    "noObject": "No object selected",
+    "selectObject": "Select an object in the scene to inspect its influences",
+    "pipeline": "Pipeline",
+    "noModifiers": "No modifiers or materials applied"
+  },
   "modifiers": {
     "types": {
       "NODES": "Procedural stack based on node graph (Geometry Nodes).",
@@ -155,7 +161,30 @@
       "ARMATURE": "Deforms mesh using bones.",
       "CLOTH": "Simulates fabric behavior.",
       "FLUID": "Simulates liquid or gas behavior.",
-      "COLLISION": "Enables interaction with physics sims."
+      "COLLISION": "Enables interaction with physics sims.",
+      "SMOOTH": "Smooths vertex positions.",
+      "LAPLACIANSMOOTH": "Smooths mesh while preserving volume.",
+      "CORRECTIVE_SMOOTH": "Corrects mesh deformation artifacts.",
+      "CAST": "Shapes mesh toward sphere, cylinder, or cube.",
+      "CURVE": "Deforms mesh along a curve object.",
+      "WAVE": "Adds animated wave motion.",
+      "HOOK": "Deforms mesh vertices with an empty or bone.",
+      "LATTICE": "Deforms mesh using a lattice cage.",
+      "MESH_DEFORM": "Deforms mesh using another mesh as cage.",
+      "SURFACE_DEFORM": "Binds mesh to follow surface of another.",
+      "WARP": "Warps mesh between two points.",
+      "SCREW": "Creates lathe/screw geometry from profile.",
+      "SKIN": "Creates mesh from skeleton structure.",
+      "REMESH": "Rebuilds mesh with uniform topology.",
+      "BUILD": "Animates construction of geometry.",
+      "WIREFRAME": "Converts edges to wireframe tubes.",
+      "EDGE_SPLIT": "Splits edges by angle or mark.",
+      "MASK": "Hides parts of mesh by vertex group.",
+      "MULTIRES": "Multi-level subdivision with sculpt support.",
+      "SOFT_BODY": "Simulates soft, elastic behavior.",
+      "PARTICLE_SYSTEM": "Generates particles for hair, effects.",
+      "DYNAMIC_PAINT": "Paints or deforms based on interaction.",
+      "OCEAN": "Generates animated ocean surface."
     },
     "noModifiers": "No modifiers."
   },

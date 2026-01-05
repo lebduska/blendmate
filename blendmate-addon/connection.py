@@ -298,24 +298,106 @@ def get_scene_data():
         "filepath": bpy.data.filepath or "(unsaved)",
     }
 
+def get_curves_geometry(obj):
+    """
+    Get geometry data for CURVES objects (new hair curves system).
+
+    CURVES objects store hair/fur as procedural curves. We extract
+    the curve points and create edges connecting consecutive points.
+    """
+    try:
+        depsgraph = bpy.context.evaluated_depsgraph_get()
+        eval_obj = obj.evaluated_get(depsgraph)
+        curves_data = eval_obj.data
+
+        if not hasattr(curves_data, 'curves') or len(curves_data.curves) == 0:
+            return {
+                "name": obj.name,
+                "skipped": True,
+                "reason": "CURVES object has no curve data",
+            }
+
+        verts = []
+        edges = []
+        vertex_index = 0
+
+        # Iterate through each curve (strand)
+        for curve in curves_data.curves:
+            num_points = curve.points_length
+
+            # Get points for this curve
+            for i in range(num_points):
+                point_index = curve.first_point_index + i
+                # Access position through the points collection
+                if hasattr(curves_data, 'points') and point_index < len(curves_data.points):
+                    pos = curves_data.points[point_index].position
+                    world_co = obj.matrix_world @ pos
+                    verts.extend([round(world_co.x, 4), round(world_co.y, 4), round(world_co.z, 4)])
+
+                    # Create edge to previous point (within same curve)
+                    if i > 0:
+                        edges.extend([vertex_index - 1, vertex_index])
+
+                    vertex_index += 1
+
+        if len(verts) == 0:
+            return {
+                "name": obj.name,
+                "skipped": True,
+                "reason": "CURVES object has no point data",
+            }
+
+        return {
+            "name": obj.name,
+            "vertices": verts,
+            "edges": edges,
+            "triangles": [],  # Curves don't have faces
+            "vertex_count": len(verts) // 3,
+            "edge_count": len(edges) // 2,
+            "triangle_count": 0,
+        }
+
+    except Exception as e:
+        return {"name": obj.name, "error": str(e)}
+
+
 def get_object_geometry(obj, decimate_ratio=None):
     """
-    Get geometry data for a single mesh object.
+    Get geometry data for an object that can be converted to mesh.
+
+    Supports: MESH, CURVE, CURVES, SURFACE, FONT, META
 
     Args:
         obj: Blender object
         decimate_ratio: Optional ratio (0.0-1.0) to simplify mesh
 
     Returns:
-        Dict with vertices, edges and triangles, or None for non-mesh objects
+        Dict with vertices, edges and triangles, or None if conversion fails
     """
-    if obj.type != 'MESH':
+    # Types that can be converted to mesh
+    # CURVE = legacy Bezier/NURBS curves
+    # CURVES = new hair curves system (Blender 3.3+)
+    CONVERTIBLE_TYPES = {'MESH', 'CURVE', 'CURVES', 'SURFACE', 'FONT', 'META'}
+
+    if obj.type not in CONVERTIBLE_TYPES:
         return None
+
+    # Special handling for CURVES (hair curves) - they don't convert to mesh well
+    if obj.type == 'CURVES':
+        return get_curves_geometry(obj)
 
     try:
         depsgraph = bpy.context.evaluated_depsgraph_get()
         eval_obj = obj.evaluated_get(depsgraph)
         eval_mesh = eval_obj.to_mesh()
+
+        # to_mesh() can return None for some objects (e.g., empty curves)
+        if eval_mesh is None:
+            return {
+                "name": obj.name,
+                "skipped": True,
+                "reason": f"Cannot convert {obj.type} to mesh (empty geometry)",
+            }
 
         # Extract vertices and ORIGINAL edges BEFORE triangulation (for wireframe)
         verts = []
@@ -373,35 +455,43 @@ def get_all_geometry(object_names=None, max_verts=50000):
     """
     Get geometry for multiple objects at once.
 
+    Supports: MESH, CURVE, SURFACE, FONT, META (any object convertible to mesh)
+
     Args:
-        object_names: List of object names, or None for all mesh objects
+        object_names: List of object names, or None for all convertible objects
         max_verts: Skip objects with more vertices than this
 
     Returns:
         Dict mapping object names to geometry data
     """
+    # Types that can be converted to mesh
+    # CURVE = legacy Bezier/NURBS curves
+    # CURVES = new hair curves system (Blender 3.3+)
+    CONVERTIBLE_TYPES = {'MESH', 'CURVE', 'CURVES', 'SURFACE', 'FONT', 'META'}
+
     result = {}
 
     if object_names is None:
-        # Get all mesh objects
-        objects = [obj for obj in bpy.data.objects if obj.type == 'MESH']
+        # Get all convertible objects
+        objects = [obj for obj in bpy.data.objects if obj.type in CONVERTIBLE_TYPES]
     else:
         objects = [bpy.data.objects.get(name) for name in object_names]
         objects = [obj for obj in objects if obj is not None]
 
     for obj in objects:
-        if obj.type != 'MESH':
+        if obj.type not in CONVERTIBLE_TYPES:
             continue
 
-        # Skip very large meshes
-        if len(obj.data.vertices) > max_verts:
-            result[obj.name] = {
-                "name": obj.name,
-                "skipped": True,
-                "reason": f"Too many vertices ({len(obj.data.vertices)} > {max_verts})",
-                "vertex_count": len(obj.data.vertices),
-            }
-            continue
+        # Skip very large meshes (only for MESH type where we can check beforehand)
+        if obj.type == 'MESH' and hasattr(obj.data, 'vertices'):
+            if len(obj.data.vertices) > max_verts:
+                result[obj.name] = {
+                    "name": obj.name,
+                    "skipped": True,
+                    "reason": f"Too many vertices ({len(obj.data.vertices)} > {max_verts})",
+                    "vertex_count": len(obj.data.vertices),
+                }
+                continue
 
         geo = get_object_geometry(obj)
         if geo:

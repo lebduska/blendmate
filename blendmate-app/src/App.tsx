@@ -373,6 +373,7 @@ export default function App() {
                         geometryCache={geometryCache}
                         selectedObjectName={selectedId?.startsWith('obj_') ? selectedId.slice(4) : null}
                         viewMode={viewMode}
+                        onSelectObject={(objectName) => setSelectedId(objectName ? `obj_${objectName}` : null)}
                       />
                     </div>
                   </div>

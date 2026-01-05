@@ -3,17 +3,22 @@
  * Displays wireframe preview of Blender objects with real geometry
  */
 
-import { useMemo, useRef, useEffect, useState } from 'react';
+import { useMemo, useRef, useEffect, useState, useCallback } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { OrbitControls, Grid, GizmoHelper, GizmoViewport } from '@react-three/drei';
 import * as THREE from 'three';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import type { BlenderObject, CachedGeometry } from '@/stores/blenderStore';
 
-// Animation state for camera transitions
-interface CameraTarget {
-  position: THREE.Vector3;
-  lookAt: THREE.Vector3;
+// Camera path for arc trajectory animation
+interface CameraPath {
+  startPosition: THREE.Vector3;
+  startLookAt: THREE.Vector3;
+  endPosition: THREE.Vector3;
+  endLookAt: THREE.Vector3;
+  // Control point for Bezier curve (elevated midpoint)
+  controlPoint: THREE.Vector3;
+  controlLookAt: THREE.Vector3;
 }
 
 export type ViewMode = 'wireframe' | 'solid' | 'xray' | 'matcap' | 'points';
@@ -22,11 +27,36 @@ interface ObjectMeshProps {
   object: BlenderObject;
   geometry?: CachedGeometry;
   viewMode?: ViewMode;
+  opacity?: number; // 0-1 for fade effects during transitions
+  dimmed?: boolean; // true for non-selected objects (muted colors)
+  hovered?: boolean; // true when mouse is over the object
+  onClick?: () => void;
+  onPointerOver?: () => void;
+  onPointerOut?: () => void;
 }
 
+// Dimmed color for non-selected objects
+const DIMMED_COLOR = '#4a4a4a';
+const DIMMED_OPACITY_MULTIPLIER = 0.4;
+// Hover color for dimmed objects (slightly brighter)
+const HOVER_COLOR = '#6a6a6a';
+const HOVER_OPACITY_MULTIPLIER = 0.6;
+
 // Component for rendering real mesh geometry with different view modes
-function RealGeometryMesh({ geometry, viewMode = 'wireframe' }: ObjectMeshProps) {
+function RealGeometryMesh({ geometry, viewMode = 'wireframe', opacity = 1, dimmed = false, hovered = false, onClick, onPointerOver, onPointerOut }: ObjectMeshProps) {
   const geo = geometry!;
+
+  // Determine color based on state
+  let color = '#ff9500'; // Default orange for selected
+  if (dimmed) {
+    color = hovered ? HOVER_COLOR : DIMMED_COLOR;
+  }
+
+  // Determine opacity based on state
+  let effectiveOpacity = opacity;
+  if (dimmed) {
+    effectiveOpacity = opacity * (hovered ? HOVER_OPACITY_MULTIPLIER : DIMMED_OPACITY_MULTIPLIER);
+  }
 
   // Create vertex positions (shared by all modes)
   const vertexPositions = useMemo(() => {
@@ -88,26 +118,48 @@ function RealGeometryMesh({ geometry, viewMode = 'wireframe' }: ObjectMeshProps)
     return bufferGeometry;
   }, [vertexPositions]);
 
+  // Invisible mesh for raycast/click detection (needed for wireframe/points modes)
+  const invisibleHitMesh = (
+    <mesh
+      geometry={meshGeometry}
+      onClick={onClick}
+      onPointerOver={onPointerOver}
+      onPointerOut={onPointerOut}
+    >
+      <meshBasicMaterial transparent opacity={0} depthWrite={false} />
+    </mesh>
+  );
+
   switch (viewMode) {
     case 'wireframe':
       return (
-        <lineSegments geometry={lineGeometry}>
-          <lineBasicMaterial color="#ff9500" transparent opacity={0.9} />
-        </lineSegments>
+        <group>
+          {invisibleHitMesh}
+          <lineSegments geometry={lineGeometry}>
+            <lineBasicMaterial color={color} transparent opacity={0.9 * effectiveOpacity} />
+          </lineSegments>
+        </group>
       );
 
     case 'solid':
       return (
         <group>
-          <mesh geometry={meshGeometry}>
+          <mesh
+            geometry={meshGeometry}
+            onClick={onClick}
+            onPointerOver={onPointerOver}
+            onPointerOut={onPointerOut}
+          >
             <meshStandardMaterial
-              color="#ff9500"
+              color={color}
               flatShading
               side={THREE.DoubleSide}
+              transparent={effectiveOpacity < 1}
+              opacity={effectiveOpacity}
             />
           </mesh>
           <lineSegments geometry={lineGeometry}>
-            <lineBasicMaterial color="#000" transparent opacity={0.2} />
+            <lineBasicMaterial color="#000" transparent opacity={0.2 * effectiveOpacity} />
           </lineSegments>
         </group>
       );
@@ -115,17 +167,22 @@ function RealGeometryMesh({ geometry, viewMode = 'wireframe' }: ObjectMeshProps)
     case 'xray':
       return (
         <group>
-          <mesh geometry={meshGeometry}>
+          <mesh
+            geometry={meshGeometry}
+            onClick={onClick}
+            onPointerOver={onPointerOver}
+            onPointerOut={onPointerOut}
+          >
             <meshStandardMaterial
-              color="#ff9500"
+              color={color}
               transparent
-              opacity={0.3}
+              opacity={0.3 * effectiveOpacity}
               side={THREE.DoubleSide}
               depthWrite={false}
             />
           </mesh>
           <lineSegments geometry={lineGeometry}>
-            <lineBasicMaterial color="#ff9500" transparent opacity={0.8} />
+            <lineBasicMaterial color={color} transparent opacity={0.8 * effectiveOpacity} />
           </lineSegments>
         </group>
       );
@@ -133,20 +190,28 @@ function RealGeometryMesh({ geometry, viewMode = 'wireframe' }: ObjectMeshProps)
     case 'matcap':
       return (
         <group>
-          <mesh geometry={meshGeometry}>
-            <meshNormalMaterial side={THREE.DoubleSide} />
+          <mesh
+            geometry={meshGeometry}
+            onClick={onClick}
+            onPointerOver={onPointerOver}
+            onPointerOut={onPointerOut}
+          >
+            <meshNormalMaterial side={THREE.DoubleSide} transparent={effectiveOpacity < 1} opacity={effectiveOpacity} />
           </mesh>
           <lineSegments geometry={lineGeometry}>
-            <lineBasicMaterial color="#000" transparent opacity={0.15} />
+            <lineBasicMaterial color="#000" transparent opacity={0.15 * effectiveOpacity} />
           </lineSegments>
         </group>
       );
 
     case 'points':
       return (
-        <points geometry={pointsGeometry}>
-          <pointsMaterial color="#ff9500" size={0.05} sizeAttenuation />
-        </points>
+        <group>
+          {invisibleHitMesh}
+          <points geometry={pointsGeometry}>
+            <pointsMaterial color={color} size={0.05} sizeAttenuation transparent={effectiveOpacity < 1} opacity={effectiveOpacity} />
+          </points>
+        </group>
       );
 
     default:
@@ -155,7 +220,13 @@ function RealGeometryMesh({ geometry, viewMode = 'wireframe' }: ObjectMeshProps)
 }
 
 // Component for placeholder geometry (non-mesh objects or missing geometry)
-function PlaceholderMesh({ object }: ObjectMeshProps) {
+function PlaceholderMesh({ object, opacity = 1, dimmed = false, hovered = false, onClick, onPointerOver, onPointerOut }: ObjectMeshProps) {
+  // Determine opacity based on state
+  let effectiveOpacity = opacity;
+  if (dimmed) {
+    effectiveOpacity = opacity * (hovered ? HOVER_OPACITY_MULTIPLIER : DIMMED_OPACITY_MULTIPLIER);
+  }
+
   // Create geometry based on object type
   const geometry = useMemo(() => {
     const dims = object.dimensions;
@@ -193,8 +264,9 @@ function PlaceholderMesh({ object }: ObjectMeshProps) {
     return [rot[0], rot[2], -rot[1]];
   }, [object.rotation_euler]);
 
-  // Color based on object type
+  // Color based on object type (dimmed uses muted gray, hovered slightly brighter)
   const color = useMemo(() => {
+    if (dimmed) return hovered ? HOVER_COLOR : DIMMED_COLOR;
     switch (object.type) {
       case 'MESH': return '#ff9500';
       case 'LIGHT': return '#facc15';
@@ -204,17 +276,24 @@ function PlaceholderMesh({ object }: ObjectMeshProps) {
       case 'ARMATURE': return '#06b6d4';
       default: return '#94a3b8';
     }
-  }, [object.type]);
+  }, [object.type, dimmed, hovered]);
 
   return (
-    <mesh position={position} rotation={rotation} geometry={geometry}>
-      <meshBasicMaterial color={color} wireframe transparent opacity={0.8} />
+    <mesh
+      position={position}
+      rotation={rotation}
+      geometry={geometry}
+      onClick={onClick}
+      onPointerOver={onPointerOver}
+      onPointerOut={onPointerOut}
+    >
+      <meshBasicMaterial color={color} wireframe transparent opacity={0.8 * effectiveOpacity} />
     </mesh>
   );
 }
 
 // Main object renderer - chooses between real geometry and placeholder
-function ObjectMesh({ object, geometry, viewMode }: ObjectMeshProps) {
+function ObjectMesh({ object, geometry, viewMode, opacity = 1, dimmed = false, hovered = false, onClick, onPointerOver, onPointerOut }: ObjectMeshProps) {
   // Debug: log why we're using placeholder vs real geometry
   const useRealGeometry = geometry && !geometry.skipped && geometry.vertices.length > 0;
 
@@ -227,11 +306,34 @@ function ObjectMesh({ object, geometry, viewMode }: ObjectMeshProps) {
 
   // Use cached geometry if available and not skipped
   if (useRealGeometry) {
-    return <RealGeometryMesh object={object} geometry={geometry} viewMode={viewMode} />;
+    return (
+      <RealGeometryMesh
+        object={object}
+        geometry={geometry}
+        viewMode={viewMode}
+        opacity={opacity}
+        dimmed={dimmed}
+        hovered={hovered}
+        onClick={onClick}
+        onPointerOver={onPointerOver}
+        onPointerOut={onPointerOut}
+      />
+    );
   }
 
   // Fall back to placeholder
-  return <PlaceholderMesh object={object} viewMode={viewMode} />;
+  return (
+    <PlaceholderMesh
+      object={object}
+      viewMode={viewMode}
+      opacity={opacity}
+      dimmed={dimmed}
+      hovered={hovered}
+      onClick={onClick}
+      onPointerOver={onPointerOver}
+      onPointerOut={onPointerOut}
+    />
+  );
 }
 
 // Earth-centric placeholder animation
@@ -276,54 +378,62 @@ function EarthCentric() {
   );
 }
 
-// Camera controller for smooth transitions when object selection changes
+// Camera controller for smooth arc transitions when object selection changes
 interface CameraControllerProps {
-  targetPosition: THREE.Vector3 | null;
-  targetLookAt: THREE.Vector3 | null;
+  cameraPath: CameraPath | null;
   controlsRef: React.RefObject<OrbitControlsImpl | null>;
+  onAnimationProgress?: (progress: number) => void; // 0 = start, 1 = complete
 }
 
-function CameraController({ targetPosition, targetLookAt, controlsRef }: CameraControllerProps) {
+function CameraController({ cameraPath, controlsRef, onAnimationProgress }: CameraControllerProps) {
   const { camera } = useThree();
   const isAnimating = useRef(false);
   const animationProgress = useRef(0);
-  const startPosition = useRef(new THREE.Vector3());
-  const startTarget = useRef(new THREE.Vector3());
-  const endPosition = useRef(new THREE.Vector3());
-  const endTarget = useRef(new THREE.Vector3());
+  const currentPath = useRef<CameraPath | null>(null);
 
-  // Start animation when target changes
+  // Start animation when path changes
   useEffect(() => {
-    if (targetPosition && targetLookAt && controlsRef.current) {
-      // Store start positions
-      startPosition.current.copy(camera.position);
-      startTarget.current.copy(controlsRef.current.target);
-
-      // Store end positions
-      endPosition.current.copy(targetPosition);
-      endTarget.current.copy(targetLookAt);
-
-      // Start animation
+    if (cameraPath && controlsRef.current) {
+      currentPath.current = cameraPath;
       animationProgress.current = 0;
       isAnimating.current = true;
+      onAnimationProgress?.(0);
     }
-  }, [targetPosition, targetLookAt, camera, controlsRef]);
+  }, [cameraPath, controlsRef, onAnimationProgress]);
 
   useFrame((_, delta) => {
-    if (!isAnimating.current || !controlsRef.current) return;
+    if (!isAnimating.current || !controlsRef.current || !currentPath.current) return;
+
+    const path = currentPath.current;
 
     // Smooth animation using easing
-    animationProgress.current += delta * 2; // Animation speed
+    animationProgress.current += delta * 1.5; // Slightly slower for arc trajectory
     const t = Math.min(animationProgress.current, 1);
 
-    // Ease out cubic for smooth deceleration
-    const eased = 1 - Math.pow(1 - t, 3);
+    // Ease in-out cubic for smooth acceleration and deceleration
+    const eased = t < 0.5
+      ? 4 * t * t * t
+      : 1 - Math.pow(-2 * t + 2, 3) / 2;
 
-    // Lerp camera position
-    camera.position.lerpVectors(startPosition.current, endPosition.current, eased);
+    // Report progress for fade effects
+    onAnimationProgress?.(eased);
 
-    // Lerp controls target
-    controlsRef.current.target.lerpVectors(startTarget.current, endTarget.current, eased);
+    // Quadratic Bezier interpolation for camera position (arc trajectory)
+    // B(t) = (1-t)²·P0 + 2·(1-t)·t·P1 + t²·P2
+    const oneMinusT = 1 - eased;
+    const pos = new THREE.Vector3()
+      .addScaledVector(path.startPosition, oneMinusT * oneMinusT)
+      .addScaledVector(path.controlPoint, 2 * oneMinusT * eased)
+      .addScaledVector(path.endPosition, eased * eased);
+
+    // Quadratic Bezier for lookAt target (smoother transition between objects)
+    const lookAt = new THREE.Vector3()
+      .addScaledVector(path.startLookAt, oneMinusT * oneMinusT)
+      .addScaledVector(path.controlLookAt, 2 * oneMinusT * eased)
+      .addScaledVector(path.endLookAt, eased * eased);
+
+    camera.position.copy(pos);
+    controlsRef.current.target.copy(lookAt);
     controlsRef.current.update();
 
     // Stop animation when complete
@@ -335,11 +445,11 @@ function CameraController({ targetPosition, targetLookAt, controlsRef }: CameraC
   return null;
 }
 
-// Calculate optimal camera position for viewing an object
-function calculateCameraTarget(
+// Calculate object center and size from geometry or dimensions
+function getObjectBounds(
   geometry: CachedGeometry | undefined,
   object: BlenderObject
-): CameraTarget {
+): { center: THREE.Vector3; size: number } {
   let center = new THREE.Vector3();
   let size = 2;
 
@@ -380,17 +490,58 @@ function calculateCameraTarget(
     }
   }
 
-  // Calculate camera distance based on size (ensure we can see the whole object)
-  const distance = Math.max(size * 2.5, 4);
+  return { center, size };
+}
 
-  // Position camera at 45-degree angle
-  const position = new THREE.Vector3(
-    center.x + distance * 0.7,
-    center.y + distance * 0.5,
-    center.z + distance * 0.7
+// Calculate camera position preserving viewing angle (spherical coordinates relative to object)
+function calculateCameraPositionWithAngle(
+  objectCenter: THREE.Vector3,
+  objectSize: number,
+  relativeOffset: THREE.Vector3 | null
+): THREE.Vector3 {
+  // Calculate camera distance based on size
+  const distance = Math.max(objectSize * 2.5, 4);
+
+  if (relativeOffset) {
+    // Preserve the viewing angle: normalize and scale to new distance
+    const normalizedOffset = relativeOffset.clone().normalize();
+    return objectCenter.clone().add(normalizedOffset.multiplyScalar(distance));
+  }
+
+  // Default: 45-degree angle
+  return new THREE.Vector3(
+    objectCenter.x + distance * 0.7,
+    objectCenter.y + distance * 0.5,
+    objectCenter.z + distance * 0.7
   );
+}
 
-  return { position, lookAt: center };
+// Calculate the arc control point for camera path
+function calculateArcControlPoint(
+  startPos: THREE.Vector3,
+  startLookAt: THREE.Vector3,
+  endPos: THREE.Vector3,
+  endLookAt: THREE.Vector3
+): { controlPoint: THREE.Vector3; controlLookAt: THREE.Vector3 } {
+  // Midpoint between start and end camera positions
+  const midCameraPos = new THREE.Vector3().addVectors(startPos, endPos).multiplyScalar(0.5);
+
+  // Midpoint between start and end lookAt targets
+  const midLookAt = new THREE.Vector3().addVectors(startLookAt, endLookAt).multiplyScalar(0.5);
+
+  // Calculate arc height based on distance between objects
+  const objectDistance = startLookAt.distanceTo(endLookAt);
+  const cameraDistance = startPos.distanceTo(endPos);
+  const arcHeight = Math.max(objectDistance * 0.3, cameraDistance * 0.2, 1);
+
+  // Elevate the control point (lift the arc)
+  const controlPoint = midCameraPos.clone();
+  controlPoint.y += arcHeight;
+
+  // Control lookAt stays at midpoint (smooth transition between objects)
+  const controlLookAt = midLookAt.clone();
+
+  return { controlPoint, controlLookAt };
 }
 
 interface SceneViewerProps {
@@ -398,32 +549,115 @@ interface SceneViewerProps {
   geometryCache: Record<string, CachedGeometry>;
   selectedObjectName: string | null;
   viewMode?: ViewMode;
+  onSelectObject?: (objectName: string | null) => void;
 }
 
-function Scene({ objects, geometryCache, selectedObjectName, viewMode = 'wireframe' }: SceneViewerProps) {
+function Scene({ objects, geometryCache, selectedObjectName, viewMode = 'wireframe', onSelectObject }: SceneViewerProps) {
+  const { camera } = useThree();
   const controlsRef = useRef<OrbitControlsImpl>(null);
-  const [cameraTarget, setCameraTarget] = useState<CameraTarget | null>(null);
+  const [cameraPath, setCameraPath] = useState<CameraPath | null>(null);
   const prevSelectedRef = useRef<string | null>(null);
+  const prevObjectCenterRef = useRef<THREE.Vector3 | null>(null);
 
-  // Only show the active/selected object
+  // Hover state for interactive selection
+  const [hoveredObjectName, setHoveredObjectName] = useState<string | null>(null);
+
+  // Transition state for fade effects
+  const [transitionState, setTransitionState] = useState<{
+    isTransitioning: boolean;
+    previousObjectName: string | null;
+    progress: number;
+  }>({ isTransitioning: false, previousObjectName: null, progress: 1 });
+
+  // Get the active/selected object (used for camera calculations)
   const activeObject = selectedObjectName ? objects[selectedObjectName] : null;
 
-  // Calculate camera target when selection changes
+  // Handle animation progress updates
+  const handleAnimationProgress = useCallback((progress: number) => {
+    setTransitionState(prev => ({
+      ...prev,
+      progress,
+      isTransitioning: progress < 1,
+    }));
+  }, []);
+
+  // Calculate camera path when selection changes
   useEffect(() => {
     if (selectedObjectName && selectedObjectName !== prevSelectedRef.current && activeObject) {
       const geometry = geometryCache[selectedObjectName];
-      const target = calculateCameraTarget(geometry, activeObject);
-      setCameraTarget(target);
-      prevSelectedRef.current = selectedObjectName;
-    } else if (!selectedObjectName && prevSelectedRef.current) {
-      // Reset to default view when deselecting
-      setCameraTarget({
-        position: new THREE.Vector3(8, 6, 8),
-        lookAt: new THREE.Vector3(0, 0, 0)
+      const { center: newCenter, size: newSize } = getObjectBounds(geometry, activeObject);
+
+      // Get current camera state
+      const currentCameraPos = camera.position.clone();
+      const currentLookAt = controlsRef.current?.target.clone() ?? new THREE.Vector3();
+
+      // Calculate relative offset (viewing angle) from current lookAt to camera
+      const relativeOffset = currentCameraPos.clone().sub(currentLookAt);
+
+      // Calculate new camera position preserving the viewing angle
+      const newCameraPos = calculateCameraPositionWithAngle(newCenter, newSize, relativeOffset);
+
+      // Calculate arc control point for smooth fly-through
+      const { controlPoint, controlLookAt } = calculateArcControlPoint(
+        currentCameraPos,
+        currentLookAt,
+        newCameraPos,
+        newCenter
+      );
+
+      // Start transition: store previous object for fade effect
+      setTransitionState({
+        isTransitioning: true,
+        previousObjectName: prevSelectedRef.current,
+        progress: 0,
       });
+
+      // Create camera path
+      setCameraPath({
+        startPosition: currentCameraPos,
+        startLookAt: currentLookAt,
+        endPosition: newCameraPos,
+        endLookAt: newCenter,
+        controlPoint,
+        controlLookAt,
+      });
+
+      prevSelectedRef.current = selectedObjectName;
+      prevObjectCenterRef.current = newCenter;
+    } else if (!selectedObjectName && prevSelectedRef.current) {
+      // Reset to default view when deselecting (Earth view)
+      const currentCameraPos = camera.position.clone();
+      const currentLookAt = controlsRef.current?.target.clone() ?? new THREE.Vector3();
+      const defaultPos = new THREE.Vector3(8, 6, 8);
+      const defaultLookAt = new THREE.Vector3(0, 0, 0);
+
+      const { controlPoint, controlLookAt } = calculateArcControlPoint(
+        currentCameraPos,
+        currentLookAt,
+        defaultPos,
+        defaultLookAt
+      );
+
+      // Start transition: store previous object for fade effect
+      setTransitionState({
+        isTransitioning: true,
+        previousObjectName: prevSelectedRef.current,
+        progress: 0,
+      });
+
+      setCameraPath({
+        startPosition: currentCameraPos,
+        startLookAt: currentLookAt,
+        endPosition: defaultPos,
+        endLookAt: defaultLookAt,
+        controlPoint,
+        controlLookAt,
+      });
+
       prevSelectedRef.current = null;
+      prevObjectCenterRef.current = null;
     }
-  }, [selectedObjectName, activeObject, geometryCache]);
+  }, [selectedObjectName, activeObject, geometryCache, camera]);
 
   return (
     <>
@@ -431,39 +665,66 @@ function Scene({ objects, geometryCache, selectedObjectName, viewMode = 'wirefra
       <ambientLight intensity={0.5} />
       <directionalLight position={[10, 10, 5]} intensity={1} />
 
-      {/* Camera controller for smooth transitions */}
+      {/* Camera controller for smooth arc transitions */}
       <CameraController
-        targetPosition={cameraTarget?.position ?? null}
-        targetLookAt={cameraTarget?.lookAt ?? null}
+        cameraPath={cameraPath}
         controlsRef={controlsRef}
+        onAnimationProgress={handleAnimationProgress}
       />
 
-      {activeObject && selectedObjectName ? (
-        <>
-          {/* Grid for object view */}
-          <Grid
-            args={[20, 20]}
-            cellSize={1}
-            cellThickness={0.5}
-            cellColor="#444"
-            sectionSize={5}
-            sectionThickness={1}
-            sectionColor="#666"
-            fadeDistance={30}
-            fadeStrength={1}
-            followCamera={false}
-            infiniteGrid
-          />
+      {/* Grid - show when there are objects */}
+      {Object.keys(objects).length > 0 && (
+        <Grid
+          args={[20, 20]}
+          cellSize={1}
+          cellThickness={0.5}
+          cellColor="#444"
+          sectionSize={5}
+          sectionThickness={1}
+          sectionColor="#666"
+          fadeDistance={30}
+          fadeStrength={1}
+          followCamera={false}
+          infiniteGrid
+        />
+      )}
 
-          {/* Render the active object */}
+      {/* Render all objects */}
+      {Object.entries(objects).map(([name, obj]) => {
+        const isSelected = name === selectedObjectName;
+        const isPreviousTransitioning = transitionState.isTransitioning && name === transitionState.previousObjectName;
+        const isNewTransitioning = transitionState.isTransitioning && isSelected;
+
+        // During transition: previous fades out, new fades in
+        let opacity = 1;
+        if (isPreviousTransitioning) {
+          opacity = 1 - transitionState.progress;
+        } else if (isNewTransitioning) {
+          opacity = transitionState.progress;
+        }
+
+        // Non-selected objects are dimmed (except during their fade transition)
+        const dimmed = !isSelected && !isPreviousTransitioning;
+        const hovered = hoveredObjectName === name;
+
+        return (
           <ObjectMesh
-            object={activeObject}
-            geometry={geometryCache[selectedObjectName]}
+            key={name}
+            object={obj}
+            geometry={geometryCache[name]}
             viewMode={viewMode}
+            opacity={opacity}
+            dimmed={dimmed}
+            hovered={hovered}
+            onClick={() => onSelectObject?.(name)}
+            onPointerOver={() => setHoveredObjectName(name)}
+            onPointerOut={() => setHoveredObjectName(null)}
           />
-        </>
-      ) : (
-        /* Show Earth when no object selected */
+        );
+      })}
+
+      {/* Show Earth when no objects exist */}
+      {Object.keys(objects).length === 0 && (
         <EarthCentric />
       )}
 
@@ -488,7 +749,7 @@ function Scene({ objects, geometryCache, selectedObjectName, viewMode = 'wirefra
   );
 }
 
-export default function SceneViewer({ objects, geometryCache, selectedObjectName, viewMode = 'wireframe' }: SceneViewerProps) {
+export default function SceneViewer({ objects, geometryCache, selectedObjectName, viewMode = 'wireframe', onSelectObject }: SceneViewerProps) {
   return (
     <div className="w-full h-full" style={{ background: 'var(--islands-color-background-primary)' }}>
       <Canvas
@@ -504,7 +765,7 @@ export default function SceneViewer({ objects, geometryCache, selectedObjectName
         }}
       >
         <color attach="background" args={['#1a1a1a']} />
-        <Scene objects={objects} geometryCache={geometryCache} selectedObjectName={selectedObjectName} viewMode={viewMode} />
+        <Scene objects={objects} geometryCache={geometryCache} selectedObjectName={selectedObjectName} viewMode={viewMode} onSelectObject={onSelectObject} />
       </Canvas>
     </div>
   );

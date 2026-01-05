@@ -2,17 +2,12 @@
 
 This file provides guidance to WARP (warp.dev) when working with code in this repository.
 
-## Workflow & issue model
+## Workflow
 
-- Single source of truth for tasks: GitHub Issues in the `lebduska/blendmate` repository.
-- One issue per PR: each issue should have its own branch and pull request.
-- Branch naming: `{id}-{summary}` (e.g. `23-ui-layout`).
-- Always associate PRs with issues using `Fixes #<id>` in the PR description.
-- When an issue number is referenced, fetch its details before doing any work:
-  - `gh issue view <N> --repo lebduska/blendmate --json title,body,url,labels`
-- After completing a task, add a short comment to the issue describing what changed and linking the PR.
-- Keep the working tree clean at the end of a session: either commit to the task branch or discard local changes.
+- Branch naming: `{topic}-{summary}` (e.g. `ui-layout`, `fix-camera-animation`).
+- Keep the working tree clean at the end of a session: either commit or discard local changes.
 - When you change observable behavior, update `CONTEXT.md`.
+- At the end of a session, update `.ai-workspace/issues/Blendmate/coding-vibe-resume.md` with a summary of changes.
 
 ## Commands & common tasks
 
@@ -116,8 +111,8 @@ Manual end-to-end test of Blender add-on ↔ desktop app WebSocket flow:
 
 - WebSocket protocol changes **must** update `docs/ARCHITECTURE.md` and any affected protocol/knowledge artifacts (e.g., handler catalogs under `knowledge/`).
 - Extraction/knowledge tasks must produce machine-readable artifacts under `knowledge/<source>-<version>/` and keep existing versions for backward compatibility.
-- Do not regenerate or overwrite existing knowledge artifacts unless explicitly instructed by an issue.
-- Prefer small, incremental changes and avoid adding new dependencies or libraries without a clear reason tied to an issue.
+- Do not regenerate or overwrite existing knowledge artifacts unless explicitly instructed.
+- Prefer small, incremental changes and avoid adding new dependencies or libraries without a clear reason.
 
 ## Project context files
 

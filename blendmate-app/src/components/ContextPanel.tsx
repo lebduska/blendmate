@@ -54,7 +54,7 @@ export default function ContextPanel({ selectedId, currentNodeId: _currentNodeId
         {/* Tab Body */}
         <div className="flex-1 min-h-0 overflow-hidden">
           {activeTab === 'influence' && (
-            <InfluenceInspector />
+            <InfluenceInspector selectedObjectName={selectedId?.startsWith('obj_') ? selectedId.slice(4) : null} />
           )}
 
           {activeTab === 'context' && (

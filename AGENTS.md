@@ -8,15 +8,12 @@ Treat this file as an **agent contract**: stručná sada pravidel pro AI agenty 
 aby byly běhy opakovatelné, auditovatelné a zarovnané s cíli projektu.
 
 ---
-## 1. Workflow rules (issues, větve, dokumentace)
+## 1. Workflow rules (větve, dokumentace)
 
-- **Single source of truth (SSOT):** GitHub Issues v repu `lebduska/blendmate`.
-- **1 Issue = 1 PR:** Každý úkol má vlastní větev i Pull Request.
-- **Větve:** `{id}-{summary}` (např. `23-ui-layout`).
-- **Propojení:** V popisu PR vždy uveď `Fixes #<id>`.
-- **Komentář do issue:** Po dokončení práce přidej krátký komentář, co se změnilo + odkaz na PR.
+- **Větve:** `{topic}-{summary}` (např. `ui-layout`, `fix-camera-animation`).
 - **Clean desk:** Před koncem session nesmí zůstat neuklizený working tree (buď commit, nebo zahodit).
 - **Bez dokumentace není hotovo:** Změníš-li chování, aktualizuj `CONTEXT.md` (a případně další související soubory).
+- **Session resume:** Na konci session aktualizuj `.ai-workspace/issues/Blendmate/coding-vibe-resume.md` se shrnutím změn.
 
 ---
 ## 2. Execution model (CLI‑first)
@@ -28,19 +25,14 @@ aby byly běhy opakovatelné, auditovatelné a zarovnané s cíli projektu.
 (Platí pro prostředí agentů, není to návod pro ruční práci lidí.)
 
 ---
-## 3. Issue & task discovery
+## 3. Task discovery
 
-- Aktivní práce se vždy váže ke konkrétnímu issue.
-- Před jakoukoli prací nad issue číslo `N` agent **MUSÍ** načíst detaily:
-
-  ```bash
-  gh issue view <N> --repo lebduska/blendmate --json title,body,url,labels
-  ```
-
-- Text issue (včetně checklistů) je **autoritativní zadání**.
-- Agent nesmí domýšlet nebo vymýšlet nové požadavky mimo issue.
-- Pokud jsou požadavky nejasné nebo chybí, agent se má zastavit a vyžádat si upřesnění komentářem v issue.
-- Agent **nesmí** hádat obsah issue ani hledat čísla issue v souborech repozitáře.
+- Před prací si agent přečte relevantní dokumenty:
+  - `.ai-workspace/coding-vibe-resume.md` — kontext z předchozí session
+  - `CONTEXT.md` — aktuální stav projektu
+  - `blendmate-identity.md` — filosofie produktu
+- Agent nesmí domýšlet nebo vymýšlet nové požadavky mimo zadání uživatele.
+- Pokud jsou požadavky nejasné, agent se má zastavit a zeptat se uživatele.
 
 ---
 ## 4. Knowledge extraction & protocol layer
